@@ -12,11 +12,7 @@
 
 ## 1.0.0 – 2026-10-27
 
-First release.
-
-- Request filter: StyleSmuggler, TrojanOrder, PHP code, CosmicSting XXE, PHP2Shell upload progress,
-  PolyShell REST uploads, address file uploads, scanner sign-ups, SEO and AI training crawlers,
-  optional GraphQL block and filter crawl protection
+- Request filter: StyleSmuggler, TrojanOrder, PHP code, CosmicSting XXE, PHP2Shell upload progress, PolyShell REST uploads, address file uploads, scanner sign-ups, SEO and AI training crawlers, optional GraphQL block and filter crawl protection
 - Upload block on all three custom option file paths
 - Hourly bot scan with expiry dates, DNS check of search engine crawlers, proxy and admin protection
 - Backdoor scan every 30 minutes with mail and admin inbox
