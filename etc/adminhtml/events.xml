@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="backend_auth_user_login_success">
+        <observer name="storetown_shop_guard_admin_ip" instance="Storetown\ShopGuard\Observer\RememberAdminIp"/>
+    </event>
+</config>

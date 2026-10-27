@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Runs before routing and store resolution, so a blocked request never reaches Magento -->
+    <type name="Magento\Framework\App\Http">
+        <plugin name="storetown_shop_guard_request_filter" type="Storetown\ShopGuard\Plugin\RequestFilter" sortOrder="-1000"/>
+    </type>
+
+    <!-- PolyShell: all three paths that write custom option files to disk -->
+    <type name="Magento\Catalog\Model\Product\Option\Type\File">
+        <plugin name="storetown_shop_guard_file_option" type="Storetown\ShopGuard\Plugin\BlockFileUpload"/>
+    </type>
+    <type name="Magento\Catalog\Model\Product\Option\Type\File\ValidatorFile">
+        <plugin name="storetown_shop_guard_file_validator" type="Storetown\ShopGuard\Plugin\BlockFileUpload"/>
+    </type>
+    <type name="Magento\Catalog\Model\Webapi\Product\Option\Type\File\Processor">
+        <plugin name="storetown_shop_guard_webapi_file" type="Storetown\ShopGuard\Plugin\BlockFileUpload"/>
+    </type>
+
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="shopguard_scan" xsi:type="object">Storetown\ShopGuard\Console\Command\ScanCommand</item>
+                <item name="shopguard_bots" xsi:type="object">Storetown\ShopGuard\Console\Command\BotsCommand</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Storetown\ShopGuard\Console\Command\ScanCommand">
+        <arguments>
+            <argument name="scanner" xsi:type="object">Storetown\ShopGuard\Model\FileScanner\Proxy</argument>
+            <argument name="systemCheck" xsi:type="object">Storetown\ShopGuard\Model\SystemCheck\Proxy</argument>
+            <argument name="notifier" xsi:type="object">Storetown\ShopGuard\Model\Notifier\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Storetown\ShopGuard\Console\Command\BotsCommand">
+        <arguments>
+            <argument name="analyzer" xsi:type="object">Storetown\ShopGuard\Model\BotAnalyzer\Proxy</argument>
+        </arguments>
+    </type>
+</config>

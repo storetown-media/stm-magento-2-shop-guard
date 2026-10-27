@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <shop_guard>
+            <general>
+                <enabled>1</enabled>
+                <ip_source>remote_addr</ip_source>
+            </general>
+            <filter>
+                <attack_rules>1</attack_rules>
+                <block_file_options>0</block_file_options>
+                <block_address_upload>0</block_address_upload>
+                <block_graphql>0</block_graphql>
+                <block_seo_bots>1</block_seo_bots>
+                <block_ai_crawlers>1</block_ai_crawlers>
+            </filter>
+            <bots>
+                <mode>block</mode>
+                <ban_days>30</ban_days>
+                <agent_threshold>500</agent_threshold>
+                <ip_threshold>5000</ip_threshold>
+                <sample_rate>20</sample_rate>
+            </bots>
+            <files>
+                <scan_enabled>1</scan_enabled>
+                <write_user_ini>1</write_user_ini>
+            </files>
+            <notify>
+                <sender>general</sender>
+            </notify>
+        </shop_guard>
+    </default>
+</config>

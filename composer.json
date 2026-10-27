@@ -1,0 +1,51 @@
+{
+    "name": "storetown-media/module-shop-guard",
+    "description": "Hardening for Magento 2: blocks StyleSmuggler, PolyShell and TrojanOrder requests, bans attacking IPs and abusive bots automatically, watches pub/media, var/report and running processes for backdoors",
+    "type": "magento2-module",
+    "version": "1.1.0",
+    "license": "MIT",
+    "keywords": [
+        "magento2",
+        "magento 2",
+        "security",
+        "firewall",
+        "bot blocker",
+        "stylesmuggler",
+        "polyshell",
+        "backdoor scanner",
+        "php2shell"
+    ],
+    "homepage": "https://www.storetown-media.de",
+    "authors": [
+        {
+            "name": "Storetown Media",
+            "email": "moin@storetown-media.de",
+            "homepage": "https://www.storetown-media.de",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "moin@storetown-media.de",
+        "issues": "https://github.com/storetown-media/stm-magento-2-shop-guard/issues",
+        "source": "https://github.com/storetown-media/stm-magento-2-shop-guard"
+    },
+    "require": {
+        "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0||~8.5.0",
+        "magento/framework": "^103.0",
+        "magento/module-admin-notification": "^100.4",
+        "magento/module-backend": "^102.0",
+        "magento/module-catalog": "^104.0",
+        "magento/module-config": "^101.2",
+        "magento/module-customer": "^103.0",
+        "magento/module-email": "^101.1",
+        "magento/module-store": "^101.1"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Storetown\\ShopGuard\\": ""
+        }
+    }
+}

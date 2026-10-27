@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system.xsd">
+    <system>
+        <!-- Shared tab of all STM extensions, same definition as in STM_License -->
+        <tab id="stm" translate="label" sortOrder="400" class="config-tab-stm">
+            <label>STM</label>
+        </tab>
+        <section id="shop_guard" translate="label" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+            <class>separator-top</class>
+            <label>STM Shop Guard</label>
+            <tab>stm</tab>
+            <resource>Storetown_ShopGuard::config</resource>
+
+            <group id="status" translate="label" sortOrder="1" showInDefault="1">
+                <label>Status</label>
+                <field id="overview" sortOrder="1" showInDefault="1">
+                    <frontend_model>Storetown\ShopGuard\Block\Adminhtml\System\Config\Status</frontend_model>
+                </field>
+            </group>
+
+            <group id="general" translate="label" sortOrder="10" showInDefault="1">
+                <label>General</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1">
+                    <label>Enable Shop Guard</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="ip_source" translate="label comment" type="select" sortOrder="20" showInDefault="1">
+                    <label>Client IP from</label>
+                    <source_model>Storetown\ShopGuard\Model\Config\Source\IpSource</source_model>
+                    <comment>Behind a proxy, Varnish or CDN REMOTE_ADDR is the proxy. Only choose a header your own proxy sets, otherwise visitors can fake it. Compare with "Your IP as seen by the shop" above.</comment>
+                </field>
+                <field id="allow_ips" translate="label comment" type="textarea" sortOrder="30" showInDefault="1">
+                    <label>Never block these IPs</label>
+                    <comment>One IP or CIDR range per line (office, ERP, monitoring). Text after # is a comment.</comment>
+                </field>
+            </group>
+
+            <group id="filter" translate="label comment" sortOrder="20" showInDefault="1">
+                <label>Request filter</label>
+                <comment>Checked before Magento handles the request. Pages delivered from Varnish or a CDN never reach PHP and are not filtered. For the admin area and API calls with a token only the IP lists apply.</comment>
+                <field id="attack_rules" translate="label comment" type="select" sortOrder="10" showInDefault="1">
+                    <label>Block attack patterns</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>StyleSmuggler, TrojanOrder template directives, PHP code in parameters, CosmicSting XXE, PHP2Shell upload progress fields, scanner sign-ups. The sender IP is banned by the bot scan.</comment>
+                </field>
+                <field id="block_file_options" translate="label comment" type="select" sortOrder="20" showInDefault="1">
+                    <label>Block file uploads in product options</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>PolyShell (APSB25-94). Set on install if your catalog has no options of type "File". Keep it on unless you sell products with customer uploads.</comment>
+                </field>
+                <field id="block_address_upload" translate="label comment" type="select" sortOrder="30" showInDefault="1">
+                    <label>Block customer address file uploads</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>/customer/address_file/upload is used to drop files for SessionReaper. Set on install if no customer or address attribute of type file or image exists.</comment>
+                </field>
+                <field id="block_graphql" translate="label comment" type="select" sortOrder="40" showInDefault="1">
+                    <label>Block GraphQL</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Emergency switch while a GraphQL vulnerability is unpatched. Luma and most Hyvä shops work without it; PWA, Hyvä Checkout and some apps need it. Test checkout after enabling.</comment>
+                </field>
+                <field id="block_seo_bots" translate="label comment" type="select" sortOrder="50" showInDefault="1">
+                    <label>Block SEO tool crawlers</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Ahrefs, Semrush, Majestic, DotBot, DataForSEO, PetalBot and others. Search engines are never affected.</comment>
+                </field>
+                <field id="block_ai_crawlers" translate="label comment" type="select" sortOrder="60" showInDefault="1">
+                    <label>Block AI training crawlers</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>GPTBot, ClaudeBot, CCBot, Bytespider, meta-externalagent, Amazonbot and others. AI search and user agents (OAI-SearchBot, ChatGPT-User, PerplexityBot, Claude-User) stay allowed.</comment>
+                </field>
+                <field id="blocked_ips" translate="label comment" type="textarea" sortOrder="70" showInDefault="1">
+                    <label>Blocked IPs</label>
+                    <comment>One IP or CIDR range per line. Text after # is a comment.</comment>
+                </field>
+                <field id="blocked_agents" translate="label comment" type="textarea" sortOrder="80" showInDefault="1">
+                    <label>Blocked user agents</label>
+                    <comment>One part of the user agent per line, not case sensitive, e.g. "scrapy".</comment>
+                </field>
+                <field id="facet_params" translate="label comment" type="textarea" sortOrder="90" showInDefault="1">
+                    <label>Protect filter parameters</label>
+                    <comment>Optional. One URL parameter of the layered navigation per line, e.g. "color" or "price". Filter URLs are then only served to visitors with a running session or coming from your own pages; search engines are allowed. Against scraper networks that crawl every filter combination. Empty = off.</comment>
+                </field>
+            </group>
+
+            <group id="bots" translate="label comment" sortOrder="30" showInDefault="1">
+                <label>Bot scan</label>
+                <comment>Every hour Shop Guard evaluates a sample of the requests and adds attackers, bots and fake search engine crawlers to the lists below. Each entry carries its expiry date and can be edited or removed.</comment>
+                <field id="mode" translate="label" type="select" sortOrder="10" showInDefault="1">
+                    <label>Mode</label>
+                    <source_model>Storetown\ShopGuard\Model\Config\Source\AutoMode</source_model>
+                </field>
+                <field id="ban_days" translate="label" type="text" sortOrder="20" showInDefault="1">
+                    <label>Block attackers and bots for (days)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+                <field id="agent_threshold" translate="label comment" type="text" sortOrder="30" showInDefault="1">
+                    <label>Bot threshold (requests per hour)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <comment>A bot or HTTP library user agent above this rate is blocked.</comment>
+                </field>
+                <field id="ip_threshold" translate="label comment" type="text" sortOrder="40" showInDefault="1">
+                    <label>IP threshold (requests per hour)</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <comment>A single IP above this rate is blocked for one day. Verified search engines are excluded.</comment>
+                </field>
+                <field id="sample_rate" translate="label comment" type="text" sortOrder="50" showInDefault="1">
+                    <label>Sample 1 of N requests</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <comment>Attacks are always recorded. Raise for very busy shops.</comment>
+                </field>
+                <field id="auto_ips" translate="label comment" type="textarea" sortOrder="60" showInDefault="1">
+                    <label>Automatically blocked IPs</label>
+                    <comment>Written by the bot scan. Format: IP # expiry date and reason.</comment>
+                </field>
+                <field id="auto_agents" translate="label comment" type="textarea" sortOrder="70" showInDefault="1">
+                    <label>Automatically blocked user agents</label>
+                    <comment>Written by the bot scan. Delete a line to unblock.</comment>
+                </field>
+            </group>
+
+            <group id="files" translate="label comment" sortOrder="40" showInDefault="1">
+                <label>Backdoor scan</label>
+                <comment>Every 30 minutes: PHP files and disguised images in pub/media and pub/static, unknown PHP files in pub/, attack code in var/report and logs (StyleSmuggler), disguised processes, crontab entries, injected scripts in CMS and configuration, new admin users. Contents of unchanged files are checked weekly.</comment>
+                <field id="scan_enabled" translate="label" type="select" sortOrder="10" showInDefault="1">
+                    <label>Enable backdoor scan</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="write_user_ini" translate="label comment" type="select" sortOrder="20" showInDefault="1">
+                    <label>Write .user.ini</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Creates pub/media/.user.ini and pub/static/.user.ini with "engine = Off". PHP-FPM then refuses to run uploaded scripts there, also on nginx. Existing files are never overwritten.</comment>
+                </field>
+                <field id="allowed_pub_files" translate="label comment" type="textarea" sortOrder="30" showInDefault="1">
+                    <label>Allowed extra PHP files in pub/</label>
+                    <comment>File name per line, optionally followed by its SHA-256 hash (sha256sum pub/file.php). With hash, any change is reported.</comment>
+                </field>
+            </group>
+
+            <group id="notify" translate="label" sortOrder="50" showInDefault="1">
+                <label>Notifications</label>
+                <field id="recipients" translate="label comment" type="text" sortOrder="10" showInDefault="1">
+                    <label>Send alerts to</label>
+                    <comment>Comma separated. Mail only on findings, the same findings are repeated once a day at most. Critical findings also appear in the admin inbox.</comment>
+                </field>
+                <field id="sender" translate="label" type="select" sortOrder="20" showInDefault="1">
+                    <label>Sender</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
