@@ -19,15 +19,20 @@ class Advice
      */
     public const AREAS = [
         'uploads' => [
-            'php-in-public', 'session-file', 'foreign-ini', 'htaccess-php', 'php-in-image', 'php-disguised', 'locked-dir',
+            'php-in-public', 'session-file', 'foreign-ini', 'htaccess-php', 'php-in-image', 'php-disguised',
+            'locked-dir',
         ],
         'pub' => ['pub-root', 'pub-root-changed', 'index-php', 'pub-subdir-php', 'pub-disguised', 'pub-locked-dir'],
+        'integrity' => [
+            'integrity-suspicious', 'integrity-new', 'integrity-changed', 'integrity-missing', 'integrity-updated',
+            'integrity-locked', 'integrity-tampered',
+        ],
         'reports' => ['report-payload'],
         'logs' => ['log-payload'],
         'processes' => ['process-kthread', 'process-tmp', 'process-malware', 'process-fccache'],
         'crontab' => ['crontab'],
         'content' => ['content'],
-        'admins' => ['admin-user'],
+        'admins' => ['admin-user', 'integration'],
     ];
 
     /**
@@ -39,12 +44,13 @@ class Advice
         $labels = [
             'uploads' => __('Upload directories (pub/media, pub/static)'),
             'pub' => __('Web root pub/'),
+            'integrity' => __('Code files (vendor, app, lib)'),
             'reports' => __('Error reports (var/report)'),
             'logs' => __('Log files'),
             'processes' => __('Running processes'),
             'crontab' => __('Crontab'),
             'content' => __('CMS content and configuration'),
-            'admins' => __('Admin users'),
+            'admins' => __('Admin users and integrations'),
         ];
         return $labels[$area] ?? __($area);
     }
@@ -69,6 +75,14 @@ class Advice
             'pub-disguised' => __('PHP code hidden in a file with another extension'),
             'locked-dir' => __('Directory cannot be opened, contents not checked'),
             'pub-locked-dir' => __('Directory cannot be opened, contents not checked'),
+            'integrity-locked' => __('Directory cannot be opened, contents not checked'),
+            'integrity-suspicious' => __('Code with typical webshell tricks'),
+            'integrity-new' => __('New code file since the reference state'),
+            'integrity-changed' => __('Code file changed since the reference state'),
+            'integrity-missing' => __('Code file deleted since the reference state'),
+            'integrity-updated' => __('Package updated since the reference state'),
+            'integrity-tampered' => __('Reference state was changed or deleted'),
+            'integration' => __('New integration with API access, please confirm'),
             'report-payload' => __('Attack code in an error report (StyleSmuggler)'),
             'log-payload' => __('Attack code in a log file (check if it was executed)'),
             'process-kthread' => __('Process disguised as a kernel thread'),
@@ -93,13 +107,19 @@ class Advice
             . '(crontab, .bashrc, systemd), then change all passwords and the encryption key and inform your hoster.'
         );
         $disguised = __(
-            'The file starts with PHP code although its name says video, archive or text. A small loader script '
-            . 'elsewhere includes it. Archive and delete it, then search pub/ and the code for its name and for the loader.'
+            'The file starts with PHP code although its name says video, archive or text. '
+            . 'A small loader script elsewhere includes it. Archive and delete it, '
+            . 'then search pub/ and the code for its name and for the loader.'
         );
         $locked = __(
             'The shop user cannot open this directory, so nothing inside was checked. Attackers lock directories '
             . 'to hide backdoors, an earlier cleanup may have done it too. Look inside as the owner (chmod u+rx), '
             . 'then delete the directory if it is empty and not needed, or restore 755.'
+        );
+        $codeChange = __(
+            'If nobody on your team deployed, updated or patched code at that time, treat the file as a backdoor: '
+            . 'compare it with the original package or your repository and restore it. After a deployment, check '
+            . 'the list and accept the new state (Shop Guard Pro, or bin/magento shopguard:integrity --accept).'
         );
         $advice = [
             'pub-subdir-php' => __(
@@ -112,6 +132,31 @@ class Advice
             'pub-disguised' => $disguised,
             'locked-dir' => $locked,
             'pub-locked-dir' => $locked,
+            'integrity-locked' => $locked,
+            'integrity-suspicious' => __(
+                'The file uses tricks real libraries do not use, such as encoded eval, includes of hidden files '
+                . 'or goto chains with random labels. Archive it outside the web root, compare it with the original '
+                . 'package or your repository, then delete or restore it and find out how it got there.'
+            ),
+            'integrity-new' => $codeChange,
+            'integrity-changed' => $codeChange,
+            'integrity-missing' => __(
+                'A code file was deleted. Usually a deployment or update removed it. If nobody on your team did, '
+                . 'restore it from your release. Afterwards accept the new state.'
+            ),
+            'integrity-updated' => __(
+                'These packages have a new version since the reference state (vendor/composer/installed.json), '
+                . 'so changed files are expected. Accept the new state once the update is finished.'
+            ),
+            'integrity-tampered' => __(
+                'The stored reference state no longer matches its checksum in the database, or it was deleted. '
+                . 'Someone with file access may have tried to hide changes. Check recent changes manually '
+                . '(file dates, deployment log), then create a new reference state.'
+            ),
+            'integration' => __(
+                'Integrations get API access with their own token. Confirm it with your team. If nobody knows it, '
+                . 'deactivate it under System › Integrations and check what it was allowed to do.'
+            ),
             'php-in-public' => __(
                 'Uploads never contain PHP. Pack the file into an archive outside the web root, delete it, '
                 . 'then search the access log for its name and upload time to find the entry point.'

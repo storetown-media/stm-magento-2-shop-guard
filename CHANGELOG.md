@@ -2,6 +2,23 @@
 
 All notable changes to STM Shop Guard are documented in this file.
 
+## [1.2.0] - 2026-10-28
+
+### Added
+
+- Integrity check: every code file in vendor, app, lib, pub, setup and bin is compared with a reference state, new, changed and deleted files are reported
+- The reference state is checked against its checksum in the database, a rewritten or deleted reference is reported as critical
+- Before the first reference state is written, all code files are checked for webshell tricks, so an existing infection is not taken over
+- Signatures for the 2026 webshells: encoded eval, hidden includes, goto obfuscation, file manager shell, upload and SEO cloaking scripts
+- Package updates are read from vendor/composer/installed.json and reported as an update instead of a critical change
+- New integrations with API access are reported
+- Findings can be marked as harmless (STM Shop Guard Pro), file approvals end when the file changes
+- CLI: `shopguard:integrity [--accept] [--full]`
+
+### Changed
+
+- New admin users and integrations stay reported for 7 days instead of one scan
+
 ## [1.1.1] - 2026-10-28
 
 ### Fixed

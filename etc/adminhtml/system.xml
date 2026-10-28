@@ -120,7 +120,7 @@
 
             <group id="files" translate="label comment" sortOrder="40" showInDefault="1">
                 <label>Backdoor scan</label>
-                <comment>Every 30 minutes: PHP files and disguised images in pub/media and pub/static, unknown PHP files in pub/ and its subdirectories, PHP code hidden in other file types, locked directories, attack code in var/report and logs (StyleSmuggler), disguised processes, crontab entries, injected scripts in CMS and configuration, new admin users. Contents of unchanged files are checked weekly.</comment>
+                <comment>Every 30 minutes: PHP files and disguised images in pub/media and pub/static, unknown PHP files in pub/ and its subdirectories, PHP code hidden in other file types, locked directories, attack code in var/report and logs (StyleSmuggler), disguised processes, crontab entries, injected scripts in CMS and configuration, new admin users and integrations, and every code file in vendor, app, lib, setup and bin against a reference state (new, changed, deleted). Contents of unchanged files are checked weekly.</comment>
                 <field id="scan_enabled" translate="label" type="select" sortOrder="10" showInDefault="1">
                     <label>Enable backdoor scan</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

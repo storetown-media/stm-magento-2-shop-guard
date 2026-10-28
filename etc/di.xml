@@ -21,7 +21,14 @@
             <argument name="commands" xsi:type="array">
                 <item name="shopguard_scan" xsi:type="object">Storetown\ShopGuard\Console\Command\ScanCommand</item>
                 <item name="shopguard_bots" xsi:type="object">Storetown\ShopGuard\Console\Command\BotsCommand</item>
+                <item name="shopguard_integrity" xsi:type="object">Storetown\ShopGuard\Console\Command\IntegrityCommand</item>
             </argument>
+        </arguments>
+    </type>
+    <type name="Storetown\ShopGuard\Console\Command\IntegrityCommand">
+        <arguments>
+            <argument name="integrity" xsi:type="object">Storetown\ShopGuard\Model\Integrity\Proxy</argument>
+            <argument name="scanner" xsi:type="object">Storetown\ShopGuard\Model\FileScanner\Proxy</argument>
         </arguments>
     </type>
     <type name="Storetown\ShopGuard\Console\Command\ScanCommand">

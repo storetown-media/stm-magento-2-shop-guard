@@ -42,6 +42,7 @@ class FileScanner
     ];
 
     private const KEEP_FINDINGS = 200;
+    private const NEW_ACCOUNT_DAYS = 7;
     private const KEEP_HISTORY = 1500;
 
     /**
@@ -57,18 +58,27 @@ class FileScanner
     private array $unchecked = [];
 
     /**
+     * Findings left out because someone marked them as harmless
+     */
+    private int $approved = 0;
+
+    /**
      * @param Config $config
      * @param Hardening $hardening
      * @param DirectoryList $directoryList
      * @param ResourceConnection $resource
      * @param FlagManager $flagManager
+     * @param Integrity $integrity
+     * @param Approvals $approvals
      */
     public function __construct(
         private Config $config,
         private Hardening $hardening,
         private DirectoryList $directoryList,
         private ResourceConnection $resource,
-        private FlagManager $flagManager
+        private FlagManager $flagManager,
+        private Integrity $integrity,
+        private Approvals $approvals
     ) {
     }
 
@@ -80,6 +90,7 @@ class FileScanner
     {
         $this->findings = [];
         $this->unchecked = [];
+        $this->approved = 0;
         $now = time();
         $state = (array)$this->flagManager->getFlagData(self::FLAG);
         $full = $forceFull || empty($state['full']) || $state['full'] < $now - self::FULL_INTERVAL;
@@ -101,9 +112,15 @@ class FileScanner
             $this->database();
             $state['db'] = $now;
         }
-        $this->newAdmins((int)($state['last'] ?? $now));
+        // New accounts stay reported for a week (or until marked as harmless), not only in the next run
+        $this->newAdmins($now - self::NEW_ACCOUNT_DAYS * 86400);
+        $this->newIntegrations($now - self::NEW_ACCOUNT_DAYS * 86400);
+        foreach ($this->integrity->check($full) as $finding) {
+            $this->add($finding['level'], $finding['check'], $finding['path']);
+        }
 
         $state['last'] = $now;
+        $state['approved'] = $this->approved;
         if ($full) {
             $state['full'] = $now;
         }
@@ -509,6 +526,29 @@ class FileScanner
     }
 
     /**
+     * Integrations get their own API token, a hidden one with full access keeps an attacker in
+     *
+     * @param int $since
+     * @return void
+     */
+    private function newIntegrations(int $since): void
+    {
+        $db = $this->resource->getConnection();
+        $table = $this->resource->getTableName('integration');
+        if (!$db->isTableExists($table)) {
+            return;
+        }
+        $rows = $db->fetchAll(
+            $db->select()
+                ->from($table, ['name', 'email', 'created_at'])
+                ->where('created_at >= ?', gmdate('Y-m-d H:i:s', $since))
+        );
+        foreach ($rows as $row) {
+            $this->add(self::WARNING, 'integration', $row['name'] . ' <' . $row['email'] . '> ' . $row['created_at']);
+        }
+    }
+
+    /**
      * @param string $path
      * @return bool
      */
@@ -544,6 +584,10 @@ class FileScanner
      */
     private function add(string $level, string $check, string $path): void
     {
+        if ($this->approvals->covers($check, $path)) {
+            $this->approved++;
+            return;
+        }
         $this->findings[] = self::expand(['level' => $level, 'check' => $check, 'path' => $path]);
     }
 

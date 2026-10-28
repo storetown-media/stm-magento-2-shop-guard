@@ -54,9 +54,19 @@ private and server addresses, and while `REMOTE_ADDR` is used, any address carry
 - processes of the shop user disguised as kernel threads, started from `/tmp` or deleted files, known miners
 - crontab entries that download and run code
 - obfuscated scripts and template injections in CMS blocks, pages, e-mail templates and configuration
-- new admin users
+- new admin users and integrations with API access (reported for 7 days)
+- every code file in `vendor`, `app`, `lib`, `pub`, `setup` and `bin` against a reference state: new, changed and
+  deleted files, package updates (from `vendor/composer/installed.json`) reported as such
+- webshell tricks in code files: encoded eval, hidden includes, goto obfuscation, known webshells
 
 File names are checked on every run, file contents only if changed (weekly in full).
+
+**Integrity check** — the first scan writes a reference state of all code files (SHA-256) to
+`var/shop_guard/integrity.json.gz`, its checksum goes into the database. Before that, every code file passes the
+signature check, so an infection already present is reported instead of being taken over. Later runs hash only
+files whose size, ctime or mtime moved (ctime cannot be set back with `touch`), the weekly run hashes everything.
+After a deployment or update take the new state with `bin/magento shopguard:integrity --accept`.
+`generated/` is not covered, it changes with every compilation.
 
 **Hardening** — writes `pub/media/.user.ini` and `pub/static/.user.ini` with `engine = Off`
 (PHP-FPM then refuses to run uploaded scripts there, also on nginx). Existing files are never overwritten.
@@ -78,7 +88,8 @@ in the admin inbox and on the CLI. The configuration page starts with the result
 
 **STM Shop Guard Pro** (paid, separate module) adds a dashboard under *System › Security › Shop Guard*:
 backdoor and bot scan at the push of a button, checked areas, findings with advice, attack and bot statistics
-of the last 14 days, latest automatic blocks.
+of the last 14 days, latest automatic blocks, findings marked as harmless with a reason, code changes accepted
+per file or package, admin users and integrations with last login, 2FA and rights, and a log of who did what.
 
 ## Installation
 
@@ -109,6 +120,7 @@ Magento cron must be running.
 ```bash
 bin/magento shopguard:scan [--full] [--notify]   # system check and backdoor scan
 bin/magento shopguard:bots [--dry-run]           # bot scan over the collected traffic
+bin/magento shopguard:integrity [--accept]       # compare code with the reference state, or take the current state
 ```
 
 ## Files
@@ -118,6 +130,7 @@ bin/magento shopguard:bots [--dry-run]           # bot scan over the collected t
 | `var/log/shop_guard.log` | every blocked attack |
 | `var/shop_guard/traffic.log` | request sample, emptied by the hourly bot scan |
 | `var/shop_guard/runtime.json` | PHP settings of the web server, refreshed every 6 hours |
+| `var/shop_guard/integrity.json.gz` | reference state of the code files, checksum in the database |
 
 ## Limits
 

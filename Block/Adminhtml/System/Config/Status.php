@@ -12,6 +12,7 @@ use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Storetown\ShopGuard\Model\Config;
 use Storetown\ShopGuard\Model\FileScanner;
+use Storetown\ShopGuard\Model\Integrity;
 use Storetown\ShopGuard\Model\RuleList;
 use Storetown\ShopGuard\Model\RuntimeSnapshot;
 use Storetown\ShopGuard\Model\ClientIp;
@@ -27,6 +28,7 @@ class Status extends Field
      * @param SystemCheck $systemCheck
      * @param FileScanner $scanner
      * @param Config $config
+     * @param Integrity $integrity
      * @param array $data
      */
     public function __construct(
@@ -34,6 +36,7 @@ class Status extends Field
         private SystemCheck $systemCheck,
         private FileScanner $scanner,
         private Config $config,
+        private Integrity $integrity,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -67,6 +70,20 @@ class Status extends Field
                 : $this->escapeHtml((int)($state['findings'] ?? 0) === 1
                     ? __('1 finding')
                     : __('%1 findings', (int)($state['findings'] ?? 0)))
+        );
+        $integrity = $this->integrity->state();
+        $html .= sprintf(
+            '<tr><th>%s</th><td>%s</td><td>%s</td></tr>',
+            $this->escapeHtml(__('Reference state of the code')),
+            empty($integrity['accepted']) ? '–' : $this->escapeHtml(
+                $this->_localeDate->date((int)$integrity['accepted'])->format('d.m.Y H:i')
+            ),
+            $this->escapeHtml(empty($integrity['accepted'])
+                ? __('Created with the first file scan.')
+                : __(
+                    '%1 code files. After a deployment: bin/magento shopguard:integrity --accept',
+                    number_format((int)($integrity['files'] ?? 0), 0, ',', '.')
+                ))
         );
         $html .= sprintf(
             '<tr><th>%s</th><td>%d / %d</td><td>%s</td></tr>',
