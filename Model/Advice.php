@@ -18,8 +18,10 @@ class Advice
      * Area of the shop each check belongs to
      */
     public const AREAS = [
-        'uploads' => ['php-in-public', 'session-file', 'foreign-ini', 'htaccess-php', 'php-in-image'],
-        'pub' => ['pub-root', 'pub-root-changed', 'index-php'],
+        'uploads' => [
+            'php-in-public', 'session-file', 'foreign-ini', 'htaccess-php', 'php-in-image', 'php-disguised', 'locked-dir',
+        ],
+        'pub' => ['pub-root', 'pub-root-changed', 'index-php', 'pub-subdir-php', 'pub-disguised', 'pub-locked-dir'],
         'reports' => ['report-payload'],
         'logs' => ['log-payload'],
         'processes' => ['process-kthread', 'process-tmp', 'process-malware', 'process-fccache'],
@@ -62,6 +64,11 @@ class Advice
             'pub-root' => __('Unknown PHP file in pub/'),
             'pub-root-changed' => __('Allowed file in pub/ was changed'),
             'index-php' => __('pub/index.php contains obfuscated code'),
+            'pub-subdir-php' => __('PHP file in a subdirectory of pub/'),
+            'php-disguised' => __('PHP code hidden in a file with another extension'),
+            'pub-disguised' => __('PHP code hidden in a file with another extension'),
+            'locked-dir' => __('Directory cannot be opened, contents not checked'),
+            'pub-locked-dir' => __('Directory cannot be opened, contents not checked'),
             'report-payload' => __('Attack code in an error report (StyleSmuggler)'),
             'log-payload' => __('Attack code in a log file (check if it was executed)'),
             'process-kthread' => __('Process disguised as a kernel thread'),
@@ -85,7 +92,26 @@ class Advice
             'A backdoor is running. Note PID and command line, stop it, find out how it starts again '
             . '(crontab, .bashrc, systemd), then change all passwords and the encryption key and inform your hoster.'
         );
+        $disguised = __(
+            'The file starts with PHP code although its name says video, archive or text. A small loader script '
+            . 'elsewhere includes it. Archive and delete it, then search pub/ and the code for its name and for the loader.'
+        );
+        $locked = __(
+            'The shop user cannot open this directory, so nothing inside was checked. Attackers lock directories '
+            . 'to hide backdoors, an earlier cleanup may have done it too. Look inside as the owner (chmod u+rx), '
+            . 'then delete the directory if it is empty and not needed, or restore 755.'
+        );
         $advice = [
+            'pub-subdir-php' => __(
+                'Apart from the error pages in pub/errors, Magento has no PHP files in subdirectories of pub/. '
+                . 'Webshells are usually dropped in many copies with random names, so archive the whole directory '
+                . 'outside the web root, delete it and search the access log for the file names. '
+                . 'If you know the file, add its path below pub/ under "Allowed extra PHP files".'
+            ),
+            'php-disguised' => $disguised,
+            'pub-disguised' => $disguised,
+            'locked-dir' => $locked,
+            'pub-locked-dir' => $locked,
             'php-in-public' => __(
                 'Uploads never contain PHP. Pack the file into an archive outside the web root, delete it, '
                 . 'then search the access log for its name and upload time to find the entry point.'

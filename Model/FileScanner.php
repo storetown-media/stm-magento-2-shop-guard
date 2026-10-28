@@ -28,6 +28,9 @@ class FileScanner
     private const PHP_NAME = '~\.(php\d?|phtml|phar|pht|phps)(\.|$)~i';
     private const IMAGE_NAME = '~\.(jpe?g|png|gif|webp|bmp|ico|tiff?)$~i';
     private const PUB_STANDARD = ['index.php', 'cron.php', 'get.php', 'static.php', 'health_check.php'];
+    private const ERRORS_STANDARD = [
+        'processor.php', 'processorFactory.php', 'report.php', '404.php', '503.php', 'noCache.php',
+    ];
     private const PAYLOAD = '~X_TRACE_|eval\(base64_decode|<\?php|<\?=|cdnflare|kworker-linux~';
     private const REPORT_GUARD = '<?php exit; ?>';
     private const LOGS = ['system.log', 'exception.log', 'debug.log', 'cron.log'];
@@ -89,6 +92,7 @@ class FileScanner
         $this->walk($media, $since, true);
         $this->walk($static, $since, false);
         $this->pubRoot();
+        $this->pubTree($since, [$media, $static]);
         $this->reports($since);
         $this->logs($since);
         $this->processes();
@@ -138,16 +142,7 @@ class FileScanner
             return;
         }
         $ours = $this->hardening->files();
-        $it = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::LEAVES_ONLY,
-            \RecursiveIteratorIterator::CATCH_GET_CHILD
-        );
-        foreach ($it as $file) {
-            /** @var \SplFileInfo $file */
-            if (!$file->isFile()) {
-                continue;
-            }
+        foreach ($this->files($root, 'locked-dir') as $file) {
             $name = $file->getFilename();
             $path = $file->getPathname();
 
@@ -171,8 +166,154 @@ class FileScanner
                 $this->add(self::CRITICAL, 'htaccess-php', $path);
             } elseif (preg_match(self::IMAGE_NAME, $name) && $this->imageContainsPhp($path)) {
                 $this->add(self::CRITICAL, 'php-in-image', $path);
+            } elseif ($this->startsWithPhp($path)) {
+                $this->add(self::CRITICAL, 'php-disguised', $path);
             }
         }
+    }
+
+    /**
+     * Everything in pub/ apart from media and static: Magento keeps no PHP there except the error pages.
+     * The 2026 webshell campaigns drop dozens of copies with random names into new subdirectories
+     * (pub/opt, pub/assets) and hide further code in .mp4, .tif or .m3u8 files.
+     *
+     * @param int $since
+     * @param string[] $walked directories already checked by walk()
+     * @return void
+     */
+    private function pubTree(int $since, array $walked): void
+    {
+        $pub = $this->directoryList->getPath(DirectoryList::PUB);
+        $skip = array_map(static fn ($dir) => rtrim($dir, '/'), $walked);
+        $allowed = $this->allowedPubFiles();
+        foreach ($this->files($pub, 'pub-locked-dir', $skip) as $file) {
+            $path = $file->getPathname();
+            $relative = substr($path, strlen($pub) + 1);
+            $name = $file->getFilename();
+            $inErrors = str_starts_with($relative, 'errors/');
+            if (!str_contains($relative, '/')) {
+                // pub/ itself: PHP names are pubRoot()'s job
+                if (!preg_match(self::PHP_NAME, $name)
+                    && $this->changedSince($file, $since)
+                    && $this->startsWithPhp($path)
+                ) {
+                    $this->add(self::CRITICAL, 'pub-disguised', $path);
+                }
+                continue;
+            }
+            if (preg_match(self::PHP_NAME, $name)) {
+                $standard = $inErrors && (
+                    in_array($relative, array_map(static fn ($n) => 'errors/' . $n, self::ERRORS_STANDARD), true)
+                    || preg_match('~^errors/[A-Za-z0-9_-]+/[A-Za-z0-9_.-]+\.phtml$~', $relative)
+                );
+                if ($standard) {
+                    continue;
+                }
+                if (isset($allowed[$relative])) {
+                    $hash = $allowed[$relative];
+                    if ($hash !== '' && !hash_equals($hash, (string)hash_file('sha256', $path))) {
+                        $this->add(self::CRITICAL, 'pub-root-changed', $path);
+                    }
+                    continue;
+                }
+                $this->add(self::CRITICAL, 'pub-subdir-php', $path);
+                continue;
+            }
+            if (in_array($name, ['.user.ini', 'php.ini'], true)) {
+                $this->add(self::CRITICAL, 'foreign-ini', $path);
+                continue;
+            }
+            if (!$this->changedSince($file, $since)) {
+                continue;
+            }
+            if ($name === '.htaccess' && $this->htaccessEnablesPhp($path)) {
+                $this->add(self::CRITICAL, 'htaccess-php', $path);
+            } elseif ($this->startsWithPhp($path)) {
+                $this->add(self::CRITICAL, 'pub-disguised', $path);
+            }
+        }
+    }
+
+    /**
+     * Files below $root. Directories the shop user cannot open are reported, not skipped silently:
+     * attackers lock them (chmod 000 or 444) to hide what is inside.
+     *
+     * @param string $root
+     * @param string $lockedCheck
+     * @param string[] $skip directories left out completely
+     * @return \Generator<\SplFileInfo>
+     */
+    private function files(string $root, string $lockedCheck, array $skip = []): \Generator
+    {
+        if (!is_readable($root) || !is_executable($root)) {
+            $this->add(self::WARNING, $lockedCheck, $root);
+            return;
+        }
+        $filter =function (\SplFileInfo $entry) use ($lockedCheck, $skip): bool {
+            if (!$entry->isDir()) {
+                return true;
+            }
+            $path = $entry->getPathname();
+            if (in_array($path, $skip, true)) {
+                return false;
+            }
+            if (!$entry->isReadable() || !$entry->isExecutable()) {
+                $this->add(self::WARNING, $lockedCheck, $path);
+                return false;
+            }
+            return true;
+        };
+        $it = new \RecursiveIteratorIterator(
+            new \RecursiveCallbackFilterIterator(
+                new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS),
+                $filter
+            ),
+            \RecursiveIteratorIterator::LEAVES_ONLY,
+            \RecursiveIteratorIterator::CATCH_GET_CHILD
+        );
+        foreach ($it as $file) {
+            /** @var \SplFileInfo $file */
+            if ($file->isFile()) {
+                yield $file;
+            }
+        }
+    }
+
+    /**
+     * Allow list for pub/: file name (pub/ itself) or path below pub/, optionally with SHA-256
+     *
+     * @return array<string, string>
+     */
+    private function allowedPubFiles(): array
+    {
+        $allowed = [];
+        foreach ($this->config->entries(Config::ALLOWED_PUB_FILES) as $entry) {
+            $parts = preg_split('/\s+/', $entry) ?: [];
+            $allowed[ltrim(preg_replace('~^pub/~', '', $parts[0]), '/')] = strtolower($parts[1] ?? '');
+        }
+        return $allowed;
+    }
+
+    /**
+     * @param \SplFileInfo $file
+     * @param int $since
+     * @return bool
+     */
+    private function changedSince(\SplFileInfo $file, int $since): bool
+    {
+        return max((int)@filemtime($file->getPathname()), (int)@filectime($file->getPathname())) >= $since;
+    }
+
+    /**
+     * PHP code at the start of a file whose name does not say PHP (video, archive, text)
+     *
+     * @param string $path
+     * @return bool
+     */
+    private function startsWithPhp(string $path): bool
+    {
+        $head = ltrim((string)@file_get_contents($path, false, null, 0, 64));
+        return stripos($head, '<?php') === 0 || str_starts_with($head, '<?=');
     }
 
     /**
@@ -181,11 +322,7 @@ class FileScanner
     private function pubRoot(): void
     {
         $pub = $this->directoryList->getPath(DirectoryList::PUB);
-        $allowed = [];
-        foreach ($this->config->entries(Config::ALLOWED_PUB_FILES) as $entry) {
-            $parts = preg_split('/\s+/', $entry) ?: [];
-            $allowed[$parts[0]] = strtolower($parts[1] ?? '');
-        }
+        $allowed = $this->allowedPubFiles();
         foreach (glob($pub . '/*') ?: [] as $path) {
             $name = basename($path);
             if (!is_file($path) || !preg_match(self::PHP_NAME, $name) || in_array($name, self::PUB_STANDARD, true)) {

@@ -120,7 +120,7 @@
 
             <group id="files" translate="label comment" sortOrder="40" showInDefault="1">
                 <label>Backdoor scan</label>
-                <comment>Every 30 minutes: PHP files and disguised images in pub/media and pub/static, unknown PHP files in pub/, attack code in var/report and logs (StyleSmuggler), disguised processes, crontab entries, injected scripts in CMS and configuration, new admin users. Contents of unchanged files are checked weekly.</comment>
+                <comment>Every 30 minutes: PHP files and disguised images in pub/media and pub/static, unknown PHP files in pub/ and its subdirectories, PHP code hidden in other file types, locked directories, attack code in var/report and logs (StyleSmuggler), disguised processes, crontab entries, injected scripts in CMS and configuration, new admin users. Contents of unchanged files are checked weekly.</comment>
                 <field id="scan_enabled" translate="label" type="select" sortOrder="10" showInDefault="1">
                     <label>Enable backdoor scan</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -132,7 +132,7 @@
                 </field>
                 <field id="allowed_pub_files" translate="label comment" type="textarea" sortOrder="30" showInDefault="1">
                     <label>Allowed extra PHP files in pub/</label>
-                    <comment>File name per line, optionally followed by its SHA-256 hash (sha256sum pub/file.php). With hash, any change is reported.</comment>
+                    <comment>File name or path below pub/ per line (file.php, opt/file.php), optionally followed by its SHA-256 hash (sha256sum pub/file.php). With hash, any change is reported.</comment>
                 </field>
             </group>
 

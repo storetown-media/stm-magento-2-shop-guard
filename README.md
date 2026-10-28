@@ -47,7 +47,9 @@ private and server addresses, and while `REMOTE_ADDR` is used, any address carry
 
 - PHP files, `.user.ini`/`php.ini`, PHP-enabling `.htaccess` and session files in `pub/media` and `pub/static`
 - PHP code disguised as images
-- unknown PHP files in `pub/` (allow list with optional SHA-256), obfuscated code in `pub/index.php`
+- unknown PHP files in `pub/` and all its subdirectories (allow list with optional SHA-256), obfuscated code in `pub/index.php`
+- PHP code hidden in files with other extensions (`.mp4`, `.tif`, `.m3u8`, ...) anywhere in `pub/`
+- directories the shop user cannot open, so a locked directory is reported instead of passing as clean
 - attack code in `var/report` and the main logs (StyleSmuggler stage 1), report guard line of the Adobe hotfix respected
 - processes of the shop user disguised as kernel threads, started from `/tmp` or deleted files, known miners
 - crontab entries that download and run code

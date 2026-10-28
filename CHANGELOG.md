@@ -2,6 +2,18 @@
 
 All notable changes to STM Shop Guard are documented in this file.
 
+## [1.1.1] - 2026-10-28
+
+### Fixed
+
+- The backdoor scan now checks all subdirectories of pub/, not only pub/ itself, pub/media and pub/static. Webshells dropped into new directories such as pub/opt or pub/assets were missed before
+- Directories the shop user cannot open are reported as not checked instead of being skipped silently
+
+### Added
+
+- PHP code hidden in files with other extensions (video, archive, text) is found anywhere in pub/
+- The allow list for pub/ accepts paths below pub/ (opt/file.php)
+
 ## [1.1.0] - 2026-10-27
 
 ### Added
