@@ -20,7 +20,7 @@ class Advice
     public const AREAS = [
         'uploads' => [
             'php-in-public', 'session-file', 'foreign-ini', 'htaccess-php', 'php-in-image', 'php-disguised',
-            'locked-dir',
+            'locked-dir', 'tmp-upload',
         ],
         'pub' => ['pub-root', 'pub-root-changed', 'index-php', 'pub-subdir-php', 'pub-disguised', 'pub-locked-dir'],
         'integrity' => [
@@ -76,6 +76,7 @@ class Advice
             'locked-dir' => __('Directory cannot be opened, contents not checked'),
             'pub-locked-dir' => __('Directory cannot be opened, contents not checked'),
             'integrity-locked' => __('Directory cannot be opened, contents not checked'),
+            'tmp-upload' => __('PHP code from refused uploads in the temp directory (PolyShell)'),
             'integrity-suspicious' => __('Code with typical webshell tricks'),
             'integrity-new' => __('New code file since the reference state'),
             'integrity-changed' => __('Code file changed since the reference state'),
@@ -119,7 +120,8 @@ class Advice
         $codeChange = __(
             'If nobody on your team deployed, updated or patched code at that time, treat the file as a backdoor: '
             . 'compare it with the original package or your repository and restore it. After a deployment, check '
-            . 'the list and accept the new state (Shop Guard Pro, or bin/magento shopguard:integrity --accept).'
+            . 'the list and accept the new state (Shop Security Guard Pro, '
+            . 'or bin/magento shopguard:integrity --accept).'
         );
         $advice = [
             'pub-subdir-php' => __(
@@ -133,6 +135,12 @@ class Advice
             'locked-dir' => $locked,
             'pub-locked-dir' => $locked,
             'integrity-locked' => $locked,
+            'tmp-upload' => __(
+                'Magento writes base64 uploads from the REST API to the temp directory before checking them, so '
+                . 'PolyShell attempts leave their webshell there (name: 7 hex characters, a dot, the original name). '
+                . 'They cannot be called from the web. Archive them outside the web root and delete them. '
+                . 'If new ones keep appearing, check that the upload block is switched on.'
+            ),
             'integrity-suspicious' => __(
                 'The file uses tricks real libraries do not use, such as encoded eval, includes of hidden files '
                 . 'or goto chains with random labels. Archive it outside the web root, compare it with the original '

@@ -7,7 +7,7 @@
         </tab>
         <section id="shop_guard" translate="label" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
             <class>separator-top</class>
-            <label>STM Shop Guard</label>
+            <label>STM Shop Security Guard</label>
             <tab>stm</tab>
             <resource>Storetown_ShopGuard::config</resource>
 
@@ -21,7 +21,7 @@
             <group id="general" translate="label" sortOrder="10" showInDefault="1">
                 <label>General</label>
                 <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1">
-                    <label>Enable Shop Guard</label>
+                    <label>Enable Shop Security Guard</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="ip_source" translate="label comment" type="select" sortOrder="20" showInDefault="1">
@@ -84,7 +84,7 @@
 
             <group id="bots" translate="label comment" sortOrder="30" showInDefault="1">
                 <label>Bot scan</label>
-                <comment>Every hour Shop Guard evaluates a sample of the requests and adds attackers, bots and fake search engine crawlers to the lists below. Each entry carries its expiry date and can be edited or removed.</comment>
+                <comment>Every hour Shop Security Guard evaluates a sample of the requests and adds attackers, bots and fake search engine crawlers to the lists below. Each entry carries its expiry date and can be edited or removed.</comment>
                 <field id="mode" translate="label" type="select" sortOrder="10" showInDefault="1">
                     <label>Mode</label>
                     <source_model>Storetown\ShopGuard\Model\Config\Source\AutoMode</source_model>

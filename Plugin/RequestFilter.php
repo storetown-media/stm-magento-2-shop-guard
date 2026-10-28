@@ -128,21 +128,25 @@ class RequestFilter
         $test = $verdict['rule'] === 'test';
         if (!str_contains((string)$facts['accept'], 'text/html')) {
             $this->response->setHeader('Content-Type', 'text/plain; charset=utf-8', true);
-            $this->response->setBody($test ? "403 Shop Guard test: the request filter is active\n" : "403 Forbidden\n");
+            $this->response->setBody(
+                $test ? "403 Shop Security Guard test: the request filter is active\n" : "403 Forbidden\n"
+            );
             return $this->response;
         }
         if ($test) {
             $this->response->setHeader('Content-Type', 'text/html; charset=utf-8', true);
             $this->response->setBody(
                 '<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="robots" content="noindex">'
-                . '<meta name="viewport" content="width=device-width"><title>Shop Guard Test</title></head>'
+                . '<meta name="viewport" content="width=device-width"><title>Shop Security Guard Test</title></head>'
                 . '<body style="font:16px/1.6 sans-serif;margin:3em auto;max-width:640px;padding:0 20px;color:#1f2429">'
-                . '<p style="font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#69737d">STM Shop Guard</p>'
-                . '<h1 style="font-size:28px;margin:0 0 12px">Shop Guard ist aktiv.</h1>'
+                . '<p style="font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#69737d">'
+                . 'STM Shop Security Guard</p>'
+                . '<h1 style="font-size:28px;margin:0 0 12px">Shop Security Guard ist aktiv.</h1>'
                 . '<p>Diese Testanfrage wurde absichtlich gesperrt. Genauso antwortet der Shop auf einen erkannten '
                 . 'Angriff: mit Status 403, bevor Magento die Anfrage verarbeitet.</p>'
-                . '<p style="color:#69737d">Shop Guard is active. This test request was blocked on purpose, the same '
-                . 'way the shop answers a detected attack: with status 403, before Magento handles the request.</p>'
+                . '<p style="color:#69737d">Shop Security Guard is active. This test request was blocked on purpose, '
+                . 'the same way the shop answers a detected attack: with status 403, '
+                . 'before Magento handles the request.</p>'
                 . '</body></html>'
             );
             return $this->response;

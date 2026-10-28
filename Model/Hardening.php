@@ -15,7 +15,7 @@ use Magento\Framework\App\Filesystem\DirectoryList;
  */
 class Hardening
 {
-    public const USER_INI = "; Storetown Shop Guard: no PHP execution below this directory\nengine = Off\n";
+    public const USER_INI = "; Storetown Shop Security Guard: no PHP execution below this directory\nengine = Off\n";
 
     /**
      * @param Config $config

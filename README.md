@@ -1,4 +1,6 @@
-# STM Shop Guard for Magento 2
+# STM Shop Security Guard for Magento 2
+
+![STM Shop Security Guard: free Magento 2 security extension with backdoor scan, bot protection and file integrity checks](https://raw.githubusercontent.com/storetown-media/stm-magento-2-shop-guard/main/docs/stm-shop-security-guard-free-magento-2-security-extension-en.webp)
 
 Free hardening module for Magento Open Source and Adobe Commerce 2.4.4 or later, PHP 8.1 – 8.5
 (tested on 2.4.8-p4 with PHP 8.4).
@@ -47,6 +49,7 @@ private and server addresses, and while `REMOTE_ADDR` is used, any address carry
 
 - PHP files, `.user.ini`/`php.ini`, PHP-enabling `.htaccess` and session files in `pub/media` and `pub/static`
 - PHP code disguised as images
+- PHP code that refused REST uploads left in the system temp directory (PolyShell attempts)
 - unknown PHP files in `pub/` and all its subdirectories (allow list with optional SHA-256), obfuscated code in `pub/index.php`
 - PHP code hidden in files with other extensions (`.mp4`, `.tif`, `.m3u8`, ...) anywhere in `pub/`
 - directories the shop user cannot open, so a locked directory is reported instead of passing as clean
@@ -86,7 +89,7 @@ After a deployment or update take the new state with `bin/magento shopguard:inte
 **What to do** — every finding comes with a short, concrete instruction: in the admin, in the alert mail,
 in the admin inbox and on the CLI. The configuration page starts with the result in plain words.
 
-**STM Shop Guard Pro** (paid, separate module) adds a dashboard under *System › Security › Shop Guard*:
+**STM Shop Security Guard Pro** (paid, separate module) adds a dashboard under *System › Security › Shop Security Guard*:
 backdoor and bot scan at the push of a button, checked areas, findings with advice, attack and bot statistics
 of the last 14 days, latest automatic blocks, findings marked as harmless with a reason, code changes accepted
 per file or package, admin users and integrations with last login, 2FA and rights, and a log of who did what.
@@ -107,13 +110,13 @@ Magento cron must be running.
 
 ## After installation
 
-1. **Stores › Configuration › STM › STM Shop Guard**
+1. **Stores › Configuration › STM › STM Shop Security Guard**
 2. Check *Your IP as seen by the shop*. Behind a proxy, Varnish or CDN set *Client IP from* to the header that shows your real IP.
    Until then IP blocking stays inactive.
 3. Enter your office and ERP addresses under *Never block these IPs*.
 4. Enter a recipient under *Notifications*.
 5. Run the first scan: `bin/magento shopguard:scan --full`
-6. Test the request filter: open `https://your-shop/?shopguard-test` — Shop Guard answers with status 403 and "Shop Guard ist aktiv".
+6. Test the request filter: open `https://your-shop/?shopguard-test` — Shop Security Guard answers with status 403 and "Shop Security Guard ist aktiv".
 
 ## Commands
 

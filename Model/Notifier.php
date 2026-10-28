@@ -81,8 +81,8 @@ class Notifier
             $host = (string)parse_url((string)$this->storeManager->getStore($storeId)->getBaseUrl(), PHP_URL_HOST);
             $count = count($findings) + count($critical);
             $subject = (string)($count === 1
-                ? __('Shop Guard: 1 finding on %1', $host)
-                : __('Shop Guard: %1 findings on %2', $count, $host));
+                ? __('Shop Security Guard: 1 finding on %1', $host)
+                : __('Shop Security Guard: %1 findings on %2', $count, $host));
             $body = $this->body($findings, $critical, $host);
         } finally {
             $this->emulation->stopEnvironmentEmulation();
@@ -104,7 +104,7 @@ class Notifier
     private function body(array $findings, array $critical, string $host): string
     {
         $now = $this->timezone->date()->format('d.m.Y H:i');
-        $out = [(string)__('Shop Guard found the following on %1 (%2):', $host, $now), ''];
+        $out = [(string)__('Shop Security Guard found the following on %1 (%2):', $host, $now), ''];
         foreach ([FileScanner::CRITICAL => __('Critical'), FileScanner::WARNING => __('Warning')] as $level => $title) {
             $group = array_filter($findings, static fn ($f) => $f['level'] === $level);
             if (!$group) {
@@ -162,7 +162,7 @@ class Notifier
             $this->transportBuilder->getTransport()->sendMessage();
             return true;
         } catch (\Throwable $e) {
-            $this->logger->error('Shop Guard: alert mail failed: ' . $e->getMessage());
+            $this->logger->error('Shop Security Guard: alert mail failed: ' . $e->getMessage());
             return false;
         }
     }
@@ -180,7 +180,7 @@ class Notifier
             $text = nl2br(htmlspecialchars($body, ENT_QUOTES));
             $critical ? $inbox->addCritical($subject, $text) : $inbox->addMajor($subject, $text);
         } catch (\Throwable $e) {
-            $this->logger->error('Shop Guard: admin notification failed: ' . $e->getMessage());
+            $this->logger->error('Shop Security Guard: admin notification failed: ' . $e->getMessage());
         }
     }
 }

@@ -1,6 +1,16 @@
 # Changelog
 
-All notable changes to STM Shop Guard are documented in this file.
+All notable changes to STM Shop Security Guard are documented in this file.
+
+## [1.3.0] - 2026-10-28
+
+### Added
+
+- PHP code left in the system temp directory by refused REST uploads is reported (PolyShell): Magento writes base64 uploads there before checking them, the finding shows how many and from when
+
+### Changed
+
+- New product name: STM Shop Security Guard. Package, module and command names stay the same
 
 ## [1.2.0] - 2026-10-28
 
@@ -12,7 +22,7 @@ All notable changes to STM Shop Guard are documented in this file.
 - Signatures for the 2026 webshells: encoded eval, hidden includes, goto obfuscation, file manager shell, upload and SEO cloaking scripts
 - Package updates are read from vendor/composer/installed.json and reported as an update instead of a critical change
 - New integrations with API access are reported
-- Findings can be marked as harmless (STM Shop Guard Pro), file approvals end when the file changes
+- Findings can be marked as harmless (STM Shop Security Guard Pro), file approvals end when the file changes
 - CLI: `shopguard:integrity [--accept] [--full]`
 
 ### Changed
@@ -38,7 +48,7 @@ All notable changes to STM Shop Guard are documented in this file.
 - Every finding comes with what to do, in the admin, the alert mail, the admin inbox and on the CLI
 - Status in plain words at the top of the configuration page: "No dangerous files found" or the number of critical findings
 - Self-test: `?shopguard-test` shows the block page, so you can see that the request filter is active
-- Findings of the last scan, scan history and hourly bot statistics are kept for STM Shop Guard Pro
+- Findings of the last scan, scan history and hourly bot statistics are kept for STM Shop Security Guard Pro
 
 ### Changed
 

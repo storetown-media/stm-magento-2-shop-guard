@@ -43,6 +43,11 @@ class FileScanner
 
     private const KEEP_FINDINGS = 200;
     private const NEW_ACCOUNT_DAYS = 7;
+
+    /**
+     * Name Magento gives base64 uploads from the REST API in the system temp directory (Framework\Api\ImageProcessor)
+     */
+    private const TMP_UPLOAD = '~^[0-9a-f]{7}\.~';
     private const KEEP_HISTORY = 1500;
 
     /**
@@ -104,6 +109,7 @@ class FileScanner
         $this->walk($static, $since, false);
         $this->pubRoot();
         $this->pubTree($since, [$media, $static]);
+        $this->tmpUploads();
         $this->reports($since);
         $this->logs($since);
         $this->processes();
@@ -248,6 +254,42 @@ class FileScanner
             } elseif ($this->startsWithPhp($path)) {
                 $this->add(self::CRITICAL, 'pub-disguised', $path);
             }
+        }
+    }
+
+    /**
+     * PolyShell sends a webshell as base64 "image" to the REST API. Magento writes it to the system temp directory
+     * before validating it, and the file stays there even when the upload is refused. They cannot be called from
+     * the web, but an include vulnerability can load them, and their dates show when the shop was attacked.
+     *
+     * @return void
+     */
+    private function tmpUploads(): void
+    {
+        $dir = $this->directoryList->getPath(DirectoryList::SYS_TMP);
+        if (!is_dir($dir) || !is_readable($dir)) {
+            return;
+        }
+        $times = [];
+        foreach (new \DirectoryIterator($dir) as $file) {
+            if (!$file->isFile() || !preg_match(self::TMP_UPLOAD, $file->getFilename()) || $file->getSize() > 2097152) {
+                continue;
+            }
+            $head = (string)@file_get_contents($file->getPathname(), false, null, 0, 4096);
+            if (preg_match(self::PHP_NAME, $file->getFilename()) || stripos($head, '<?php') !== false
+                || str_contains($head, '<?=')
+            ) {
+                $times[] = (int)$file->getMTime();
+            }
+        }
+        if ($times) {
+            $this->add(self::WARNING, 'tmp-upload', sprintf(
+                '%s: %d (%s – %s)',
+                $dir,
+                count($times),
+                gmdate('Y-m-d', min($times)),
+                gmdate('Y-m-d', max($times))
+            ));
         }
     }
 

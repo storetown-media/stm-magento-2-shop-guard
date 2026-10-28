@@ -43,7 +43,7 @@ class AnalyzeTraffic
         $summary = $this->analyzer->run();
         if ($summary['ips'] || $summary['agents']) {
             $this->logger->info(sprintf(
-                'Shop Guard bot scan (%s): %d IPs, %d user agents added, %d expired',
+                'Shop Security Guard bot scan (%s): %d IPs, %d user agents added, %d expired',
                 $summary['mode'],
                 count($summary['ips']),
                 count($summary['agents']),

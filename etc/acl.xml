@@ -6,7 +6,7 @@
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="Storetown_ShopGuard::config" title="STM Shop Guard" sortOrder="110"/>
+                            <resource id="Storetown_ShopGuard::config" title="STM Shop Security Guard" sortOrder="110"/>
                         </resource>
                     </resource>
                 </resource>
