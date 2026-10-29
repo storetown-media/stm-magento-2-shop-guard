@@ -2,6 +2,12 @@
 
 All notable changes to STM Shop Security Guard are documented in this file.
 
+## [1.5.0] - 2026-10-29
+
+### Added
+
+- The signed feed can carry security warnings with the conditions under which a shop is affected; the shop checks their form and keeps them for Shop Security Guard Pro, which alerts when a warning applies. bin/magento shopguard:rules lists them
+
 ## [1.4.0] - 2026-10-29
 
 ### Added

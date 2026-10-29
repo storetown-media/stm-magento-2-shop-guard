@@ -40,6 +40,10 @@ class RuleFeed
     private const MAX_PATTERN = 1000;
     private const MAX_HITS_BYTES = 1048576;
     private const FIELDS = ['query', 'body', 'post', 'ua', 'path', 'uri'];
+    private const MAX_WARNINGS = 100;
+    private const SEVERITIES = ['critical', 'high', 'medium', 'low'];
+    private const WHO = ['you', 'hoster', 'developer'];
+    private const CONSTRAINT = '#^[0-9a-z.,|<>=!~^*@\s-]{1,100}$#i';
     private const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
     private const BACKTRACK_LIMIT = '100000';
 
@@ -148,8 +152,10 @@ class RuleFeed
                 return ['status' => 'unchanged', 'message' => sprintf('feed %d is current', $installed)];
             }
             [$rules, $refused] = $this->validate($feed['rules']);
+            [$warnings, $refusedWarnings] = $this->validateWarnings($feed['warnings']);
+            $refused += $refusedWarnings;
             $this->write(self::RULES_FILE, (string)json_encode(
-                ['serial' => $feed['serial'], 'rules' => $rules],
+                ['serial' => $feed['serial'], 'rules' => $rules, 'warnings' => $warnings],
                 JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
             ));
             $this->loaded = null;
@@ -161,13 +167,15 @@ class RuleFeed
                 'checked' => time(),
                 'updated' => time(),
                 'rules' => count($rules),
+                'warnings' => count($warnings),
                 'refused' => $refused,
                 'error' => null,
             ]);
             return ['status' => 'updated', 'message' => sprintf(
-                'feed %d: %d rules active, %d refused',
+                'feed %d: %d rules active, %d warnings, %d refused',
                 $feed['serial'],
                 count($rules),
+                count($warnings),
                 count($refused)
             )];
         } catch (\RuntimeException $e) {
@@ -179,13 +187,28 @@ class RuleFeed
      * Checks an unsigned feed file before it is signed and published: format, patterns, ordinary requests.
      *
      * @param string $json
-     * @return array{serial: int, rules: array<int, array<string, mixed>>, refused: array<string, string>}
+     * @return array{serial: int, rules: array<int, array<string, mixed>>, warnings: array<int, array<string, mixed>>,
+     *     refused: array<string, string>}
      */
     public function check(string $json): array
     {
         $feed = $this->decode($json);
         [$rules, $refused] = $this->validate($feed['rules']);
-        return ['serial' => $feed['serial'], 'rules' => $rules, 'refused' => $refused];
+        [$warnings, $refusedWarnings] = $this->validateWarnings($feed['warnings']);
+        return ['serial' => $feed['serial'], 'rules' => $rules, 'warnings' => $warnings,
+            'refused' => $refused + $refusedWarnings];
+    }
+
+    /**
+     * Security warnings of the feed with the conditions under which a shop is affected. Shop Security Guard Pro
+     * checks the conditions against the shop and alerts only when they apply.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function warnings(): array
+    {
+        $data = json_decode((string)@file_get_contents($this->path(self::RULES_FILE)), true);
+        return is_array($data) && is_array($data['warnings'] ?? null) ? $data['warnings'] : [];
     }
 
     /**
@@ -322,7 +345,126 @@ class RuleFeed
         if (!is_array($feed['rules'] ?? null) || count($feed['rules']) > self::MAX_RULES) {
             throw new \RuntimeException('feed has no rule list or more than 300 rules');
         }
-        return ['serial' => $feed['serial'], 'issued' => (string)($feed['issued'] ?? ''), 'rules' => $feed['rules']];
+        $warnings = $feed['warnings'] ?? [];
+        if (!is_array($warnings) || count($warnings) > self::MAX_WARNINGS) {
+            throw new \RuntimeException('feed has an invalid warning list or more than 100 warnings');
+        }
+        return ['serial' => $feed['serial'], 'issued' => (string)($feed['issued'] ?? ''), 'rules' => $feed['rules'],
+            'warnings' => $warnings];
+    }
+
+    /**
+     * @param array<int, mixed> $input
+     * @return array{0: array<int, array<string, mixed>>, 1: array<string, string>}
+     */
+    private function validateWarnings(array $input): array
+    {
+        $warnings = [];
+        $refused = [];
+        foreach ($input as $i => $raw) {
+            $id = is_array($raw) && is_string($raw['id'] ?? null) ? $raw['id'] : '#' . $i;
+            try {
+                $warning = $this->normalizeWarning($raw);
+                if (isset($warnings[$warning['id']])) {
+                    throw new \RuntimeException('id used twice');
+                }
+                $warnings[$warning['id']] = $warning;
+            } catch (\RuntimeException $e) {
+                $refused['warning ' . $id] = $e->getMessage();
+            }
+        }
+        return [array_values($warnings), $refused];
+    }
+
+    /**
+     * Plain text only; conditions are checked for their form here and evaluated by Shop Security Guard Pro.
+     *
+     * @param mixed $raw
+     * @return array<string, mixed>
+     */
+    private function normalizeWarning($raw): array
+    {
+        if (!is_array($raw)) {
+            throw new \RuntimeException('not an object');
+        }
+        $id = (string)($raw['id'] ?? '');
+        if (!preg_match('/^[a-z0-9][a-z0-9-]{2,40}$/', $id)) {
+            throw new \RuntimeException('invalid id');
+        }
+        $severity = (string)($raw['severity'] ?? '');
+        if (!in_array($severity, self::SEVERITIES, true)) {
+            throw new \RuntimeException('severity must be one of ' . implode(', ', self::SEVERITIES));
+        }
+        $who = (string)($raw['who'] ?? 'developer');
+        if (!in_array($who, self::WHO, true)) {
+            throw new \RuntimeException('who must be one of ' . implode(', ', self::WHO));
+        }
+        $when = $raw['when'] ?? [];
+        if (!is_array($when) || array_diff(array_keys($when), ['magento', 'php', 'packages', 'modules'])) {
+            throw new \RuntimeException('when may only hold magento, php, packages, modules');
+        }
+        foreach (['magento', 'php'] as $key) {
+            if (isset($when[$key]) && !preg_match(self::CONSTRAINT, (string)$when[$key])) {
+                throw new \RuntimeException('invalid version constraint for ' . $key);
+            }
+        }
+        foreach ((array)($when['packages'] ?? []) as $package => $constraint) {
+            if (!preg_match('~^[a-z0-9_.-]+/[a-z0-9_.-]+$~', (string)$package)
+                || !preg_match(self::CONSTRAINT, (string)$constraint)
+            ) {
+                throw new \RuntimeException('invalid package condition');
+            }
+        }
+        foreach ((array)($when['modules'] ?? []) as $module) {
+            if (!preg_match('/^[A-Za-z0-9]+_[A-Za-z0-9]+$/', (string)$module)) {
+                throw new \RuntimeException('invalid module name');
+            }
+        }
+        $steps = [];
+        foreach (['en', 'de'] as $lang) {
+            $list = array_slice(array_values((array)($raw['steps'][$lang] ?? [])), 0, 10);
+            $steps[$lang] = array_map(fn ($s) => $this->plain($s, 500), $list);
+        }
+        return [
+            'id' => $id,
+            'severity' => $severity,
+            'who' => $who,
+            'published' => $this->plain($raw['published'] ?? '', 20),
+            'title' => $this->texts($raw['title'] ?? null, 300),
+            'what' => $this->texts($raw['what'] ?? null, 2000),
+            'steps' => $steps,
+            'refs' => array_map(fn ($s) => $this->plain($s, 200), array_slice(array_values((array)($raw['refs'] ?? [])), 0, 10)),
+            'when' => [
+                'magento' => isset($when['magento']) ? (string)$when['magento'] : null,
+                'php' => isset($when['php']) ? (string)$when['php'] : null,
+                'packages' => array_map('strval', (array)($when['packages'] ?? [])),
+                'modules' => array_values(array_map('strval', (array)($when['modules'] ?? []))),
+            ],
+        ];
+    }
+
+    /**
+     * @param mixed $raw {"en": "...", "de": "..."}, English required
+     * @param int $max
+     * @return array<string, string>
+     */
+    private function texts($raw, int $max): array
+    {
+        $en = $this->plain($raw['en'] ?? '', $max);
+        if (!is_array($raw) || $en === '') {
+            throw new \RuntimeException('text needs at least an English version');
+        }
+        return ['en' => $en, 'de' => $this->plain($raw['de'] ?? '', $max) ?: $en];
+    }
+
+    /**
+     * @param mixed $value
+     * @param int $max
+     * @return string
+     */
+    private function plain($value, int $max): string
+    {
+        return mb_substr(trim(strip_tags(is_scalar($value) ? (string)$value : '')), 0, $max);
     }
 
     /**

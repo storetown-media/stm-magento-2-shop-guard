@@ -92,6 +92,9 @@ class RulesCommand extends Command
                 isset($hits[$rule['id']]) ? sprintf(' (%d hits in 30 days)', $hits[$rule['id']]) : ''
             ));
         }
+        foreach ($this->ruleFeed->warnings() as $warning) {
+            $output->writeln(sprintf('  warning %-8s %-22s %s', $warning['severity'], $warning['id'], $warning['title']['en']));
+        }
         foreach ((array)($state['refused'] ?? []) as $id => $reason) {
             $output->writeln(sprintf('  <comment>refused %s: %s</comment>', $id, $reason));
         }
@@ -114,6 +117,9 @@ class RulesCommand extends Command
         $output->writeln(sprintf('<info>Feed %d</info>: %d rules accepted', $report['serial'], count($report['rules'])));
         foreach ($report['rules'] as $rule) {
             $output->writeln(sprintf('  ok    %-5s %-22s %s', $rule['action'], $rule['id'], $rule['title']));
+        }
+        foreach ($report['warnings'] as $warning) {
+            $output->writeln(sprintf('  ok    warning %-8s %-22s %s', $warning['severity'], $warning['id'], $warning['title']['en']));
         }
         foreach ($report['refused'] as $id => $reason) {
             $output->writeln(sprintf('  <error>REFUSED %s: %s</error>', $id, $reason));
