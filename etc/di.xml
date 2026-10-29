@@ -22,7 +22,13 @@
                 <item name="shopguard_scan" xsi:type="object">Storetown\ShopGuard\Console\Command\ScanCommand</item>
                 <item name="shopguard_bots" xsi:type="object">Storetown\ShopGuard\Console\Command\BotsCommand</item>
                 <item name="shopguard_integrity" xsi:type="object">Storetown\ShopGuard\Console\Command\IntegrityCommand</item>
+                <item name="shopguard_rules" xsi:type="object">Storetown\ShopGuard\Console\Command\RulesCommand</item>
             </argument>
+        </arguments>
+    </type>
+    <type name="Storetown\ShopGuard\Console\Command\RulesCommand">
+        <arguments>
+            <argument name="ruleFeed" xsi:type="object">Storetown\ShopGuard\Model\RuleFeed\Proxy</argument>
         </arguments>
     </type>
     <type name="Storetown\ShopGuard\Console\Command\IntegrityCommand">

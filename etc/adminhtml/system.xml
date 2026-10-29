@@ -43,6 +43,14 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>StyleSmuggler, TrojanOrder template directives, PHP code in parameters, CosmicSting XXE, PHP2Shell upload progress fields, scanner sign-ups. The sender IP is banned by the bot scan.</comment>
                 </field>
+                <field id="feed_enabled" translate="label comment" type="select" sortOrder="15" showInDefault="1">
+                    <label>Load new attack patterns from Storetown Media</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Every hour the shop fetches a signed list of attack patterns from storetown-media.de, so new attack waves are filtered before the next module update. Only the file is fetched, nothing about your shop is sent. A list that is not signed by Storetown Media is never used. Status: bin/magento shopguard:rules</comment>
+                    <depends>
+                        <field id="attack_rules">1</field>
+                    </depends>
+                </field>
                 <field id="block_file_options" translate="label comment" type="select" sortOrder="20" showInDefault="1">
                     <label>Block file uploads in product options</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

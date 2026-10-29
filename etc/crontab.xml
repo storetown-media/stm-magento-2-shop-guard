@@ -7,5 +7,8 @@
         <job name="storetown_shop_guard_scan" instance="Storetown\ShopGuard\Cron\ScanFiles" method="execute">
             <schedule>*/30 * * * *</schedule>
         </job>
+        <job name="storetown_shop_guard_rules" instance="Storetown\ShopGuard\Cron\UpdateRules" method="execute">
+            <schedule>37 * * * *</schedule>
+        </job>
     </group>
 </config>

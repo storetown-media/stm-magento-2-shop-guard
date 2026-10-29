@@ -59,11 +59,13 @@ class RequestInspector
      * @param Config $config
      * @param DeploymentConfig $deploymentConfig
      * @param DirectoryList $directoryList
+     * @param RuleFeed $ruleFeed
      */
     public function __construct(
         private Config $config,
         private DeploymentConfig $deploymentConfig,
-        private DirectoryList $directoryList
+        private DirectoryList $directoryList,
+        private RuleFeed $ruleFeed
     ) {
     }
 
@@ -97,6 +99,12 @@ class RequestInspector
 
         if ($this->config->flag(Config::ATTACK_RULES) && ($rule = $this->attack($r, $path)) !== null) {
             return ['type' => self::TYPE_ATTACK, 'rule' => $rule];
+        }
+        // Patterns published after this release, see RuleFeed
+        if ($this->config->flag(Config::ATTACK_RULES) && $this->config->flag(Config::FEED_ENABLED)
+            && ($rule = $this->ruleFeed->match($r, $path)) !== null
+        ) {
+            return ['type' => $rule === RuleFeed::TEST_RULE ? self::TYPE_POLICY : self::TYPE_ATTACK, 'rule' => $rule];
         }
         if ($this->config->flag(Config::BLOCK_GRAPHQL) && preg_match('~(^|/)graphql/?$~', $path)) {
             return ['type' => self::TYPE_POLICY, 'rule' => 'graphql'];

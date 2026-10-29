@@ -28,6 +28,15 @@ It bundles what we run on our customers' shops after the 2026 attack waves
 Search engines, AI search agents, link previews, price comparison and uptime monitors are never blocked by agent.
 The admin area and API calls with a token are only subject to the IP lists.
 
+**Attack patterns from Storetown Media (hourly)** — new attack waves are filtered before the next module update.
+The shop fetches `https://www.storetown-media.de/shop-guard/rules.json` with its Ed25519 signature; a list that does
+not verify against a key built into the module is never used. Before a rule becomes active the shop checks it itself:
+it must compile and must not match any of ten ordinary requests (start page, search, cart, checkout, account, contact
+form …), and every pattern runs with a backtracking limit. New rules usually start in the mode *log*: they only count
+hits, which `bin/magento shopguard:rules` shows, and block later. An older list never replaces a newer one.
+Only the file is fetched, nothing about the shop is sent; storetown-media.de sees the IP address of the server.
+Switch: *Load new attack patterns from Storetown Media*. Test: `https://your-shop/?shopguard-feed-test` answers 403.
+
 **Upload block** — three plugins stop custom option file uploads before they reach the disk
 (frontend validator, inner validator and the REST processor that PolyShell uses).
 Switched on at install time only if the catalog has no options of type *File*.
@@ -124,6 +133,7 @@ Magento cron must be running.
 bin/magento shopguard:scan [--full] [--notify]   # system check and backdoor scan
 bin/magento shopguard:bots [--dry-run]           # bot scan over the collected traffic
 bin/magento shopguard:integrity [--accept]       # compare code with the reference state, or take the current state
+bin/magento shopguard:rules [--update]           # attack patterns from Storetown Media: state, hits, fetch now
 ```
 
 ## Files
@@ -134,6 +144,8 @@ bin/magento shopguard:integrity [--accept]       # compare code with the referen
 | `var/shop_guard/traffic.log` | request sample, emptied by the hourly bot scan |
 | `var/shop_guard/runtime.json` | PHP settings of the web server, refreshed every 6 hours |
 | `var/shop_guard/integrity.json.gz` | reference state of the code files, checksum in the database |
+| `var/shop_guard/feed.json`, `feed-state.json` | verified attack patterns from Storetown Media and the state of the last fetch |
+| `var/shop_guard/feed-hits.log` | hits of patterns in the mode *log* |
 
 ## Limits
 

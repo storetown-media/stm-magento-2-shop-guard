@@ -19,6 +19,7 @@ class Config
     public const ALLOW_IPS = 'shop_guard/general/allow_ips';
 
     public const ATTACK_RULES = 'shop_guard/filter/attack_rules';
+    public const FEED_ENABLED = 'shop_guard/filter/feed_enabled';
     public const BLOCK_GRAPHQL = 'shop_guard/filter/block_graphql';
     public const BLOCK_ADDRESS_UPLOAD = 'shop_guard/filter/block_address_upload';
     public const BLOCK_FILE_OPTIONS = 'shop_guard/filter/block_file_options';

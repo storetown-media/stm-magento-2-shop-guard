@@ -14,6 +14,7 @@ use Magento\Framework\App\ResponseInterface;
 use Storetown\ShopGuard\Model\ClientIp;
 use Storetown\ShopGuard\Model\Config;
 use Storetown\ShopGuard\Model\RequestInspector;
+use Storetown\ShopGuard\Model\RuleFeed;
 use Storetown\ShopGuard\Model\RuntimeSnapshot;
 use Storetown\ShopGuard\Model\TrafficLog;
 
@@ -125,12 +126,13 @@ class RequestFilter
         $this->response->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate', true);
         $this->response->setHeader('X-Shop-Guard', 'blocked', true);
 
-        $test = $verdict['rule'] === 'test';
+        $feedTest = $verdict['rule'] === RuleFeed::TEST_RULE;
+        $test = $verdict['rule'] === 'test' || $feedTest;
         if (!str_contains((string)$facts['accept'], 'text/html')) {
             $this->response->setHeader('Content-Type', 'text/plain; charset=utf-8', true);
-            $this->response->setBody(
-                $test ? "403 Shop Security Guard test: the request filter is active\n" : "403 Forbidden\n"
-            );
+            $this->response->setBody(!$test ? "403 Forbidden\n" : ($feedTest
+                ? "403 Shop Security Guard test: the attack patterns from Storetown Media are active\n"
+                : "403 Shop Security Guard test: the request filter is active\n"));
             return $this->response;
         }
         if ($test) {
@@ -141,7 +143,9 @@ class RequestFilter
                 . '<body style="font:16px/1.6 sans-serif;margin:3em auto;max-width:640px;padding:0 20px;color:#1f2429">'
                 . '<p style="font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#69737d">'
                 . 'STM Shop Security Guard</p>'
-                . '<h1 style="font-size:28px;margin:0 0 12px">Shop Security Guard ist aktiv.</h1>'
+                . '<h1 style="font-size:28px;margin:0 0 12px">'
+                . ($feedTest ? 'Die Angriffsmuster von Storetown Media sind aktiv.' : 'Shop Security Guard ist aktiv.')
+                . '</h1>'
                 . '<p>Diese Testanfrage wurde absichtlich gesperrt. Genauso antwortet der Shop auf einen erkannten '
                 . 'Angriff: mit Status 403, bevor Magento die Anfrage verarbeitet.</p>'
                 . '<p style="color:#69737d">Shop Security Guard is active. This test request was blocked on purpose, '

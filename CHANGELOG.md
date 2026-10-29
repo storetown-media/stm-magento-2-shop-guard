@@ -2,6 +2,16 @@
 
 All notable changes to STM Shop Security Guard are documented in this file.
 
+## [1.4.0] - 2026-10-29
+
+### Added
+
+- Attack patterns from Storetown Media: every hour the shop fetches a signed list (Ed25519) of new attack patterns, so a new attack wave is filtered before the next module update; a list that does not verify is never used, an older one never replaces a newer one
+- Every pattern is checked in the shop before it becomes active: it must compile, must not match ten ordinary requests (start page, search, cart, checkout, account, contact form …) and runs with a backtracking limit, so a faulty pattern cannot lock out customers or slow the shop down
+- New patterns can start in the mode "log" and only count hits; `bin/magento shopguard:rules` shows state, rules and hits, `--update` fetches now, `--check` checks a list before it is signed
+- Self-test of the patterns: `?shopguard-feed-test` answers 403, without banning whoever tries it
+- Setting "Load new attack patterns from Storetown Media" (on by default); only the file is fetched, nothing about the shop is sent
+
 ## [1.3.0] - 2026-10-28
 
 ### Added
