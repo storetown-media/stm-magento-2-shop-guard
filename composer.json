@@ -2,7 +2,7 @@
     "name": "storetown-media/module-shop-guard",
     "description": "Hardening for Magento 2: blocks StyleSmuggler, PolyShell and TrojanOrder requests, bans attacking IPs and abusive bots automatically, loads new signed attack patterns every hour, watches pub/, var/report, running processes and every code file against a reference state for backdoors",
     "type": "magento2-module",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "license": "MIT",
     "keywords": [
         "magento2",

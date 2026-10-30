@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!-- System > Security > Shop Security Guard, so the settings are found where security is looked for.
+     Magento derives the CSS class from the last part of the id; short ids like "::settings" could pick up an icon. -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Storetown_ShopGuard::security" title="Security" translate="title" module="Storetown_ShopGuard"
+             sortOrder="5" parent="Magento_Backend::system" resource="Storetown_ShopGuard::config"/>
+        <add id="Storetown_ShopGuard::shop_guard_settings" title="Shop Security Guard" translate="title"
+             module="Storetown_ShopGuard" sortOrder="20" parent="Storetown_ShopGuard::security"
+             action="adminhtml/system_config/edit/section/shop_guard" resource="Storetown_ShopGuard::config"/>
+    </menu>
+</config>

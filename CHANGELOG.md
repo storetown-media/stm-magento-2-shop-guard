@@ -2,6 +2,14 @@
 
 All notable changes to STM Shop Security Guard are documented in this file.
 
+## [1.7.0] - 2026-10-30
+
+### Added
+
+- System > Security > Shop Security Guard opens the settings, so they are found where security is looked for
+- The settings start with a bar: the name, whether the request filter protects the shop, and with Shop Security Guard Pro the way to its overview and license
+- With Shop Security Guard Pro the settings show its verdict in one line instead of repeating the system table (still one click away), and each settings group links to the view of the overview that shows what it does; a link to the settings with #sg-<group> opens that group
+
 ## [1.6.0] - 2026-10-30
 
 ### Added
