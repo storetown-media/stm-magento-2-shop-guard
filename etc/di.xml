@@ -23,12 +23,19 @@
                 <item name="shopguard_bots" xsi:type="object">Storetown\ShopGuard\Console\Command\BotsCommand</item>
                 <item name="shopguard_integrity" xsi:type="object">Storetown\ShopGuard\Console\Command\IntegrityCommand</item>
                 <item name="shopguard_rules" xsi:type="object">Storetown\ShopGuard\Console\Command\RulesCommand</item>
+                <item name="shopguard_cardtests" xsi:type="object">Storetown\ShopGuard\Console\Command\CardTestsCommand</item>
             </argument>
+        </arguments>
+    </type>
+    <type name="Storetown\ShopGuard\Console\Command\CardTestsCommand">
+        <arguments>
+            <argument name="cardBrake" xsi:type="object">Storetown\ShopGuard\Model\CardBrake\Proxy</argument>
         </arguments>
     </type>
     <type name="Storetown\ShopGuard\Console\Command\RulesCommand">
         <arguments>
             <argument name="ruleFeed" xsi:type="object">Storetown\ShopGuard\Model\RuleFeed\Proxy</argument>
+            <argument name="warningCheck" xsi:type="object">Storetown\ShopGuard\Model\WarningCheck\Proxy</argument>
         </arguments>
     </type>
     <type name="Storetown\ShopGuard\Console\Command\IntegrityCommand">

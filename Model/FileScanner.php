@@ -75,6 +75,7 @@ class FileScanner
      * @param FlagManager $flagManager
      * @param Integrity $integrity
      * @param Approvals $approvals
+     * @param LeakCheck $leakCheck
      */
     public function __construct(
         private Config $config,
@@ -83,7 +84,8 @@ class FileScanner
         private ResourceConnection $resource,
         private FlagManager $flagManager,
         private Integrity $integrity,
-        private Approvals $approvals
+        private Approvals $approvals,
+        private LeakCheck $leakCheck
     ) {
     }
 
@@ -117,6 +119,14 @@ class FileScanner
         if ($full || empty($state['db']) || $state['db'] < $now - self::DB_INTERVAL) {
             $this->database();
             $state['db'] = $now;
+        }
+        // Files anyone can download: asked once a day, the findings stay until the next check
+        if ($full || empty($state['leaks_at']) || $state['leaks_at'] < $now - self::DB_INTERVAL) {
+            $state['leaks'] = $this->leakCheck->run();
+            $state['leaks_at'] = $now;
+        }
+        foreach ((array)($state['leaks'] ?? []) as $leak) {
+            $this->add($leak['level'], $leak['check'], $leak['path']);
         }
         // New accounts stay reported for a week (or until marked as harmless), not only in the next run
         $this->newAdmins($now - self::NEW_ACCOUNT_DAYS * 86400);

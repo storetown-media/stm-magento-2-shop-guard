@@ -60,12 +60,14 @@ class RequestInspector
      * @param DeploymentConfig $deploymentConfig
      * @param DirectoryList $directoryList
      * @param RuleFeed $ruleFeed
+     * @param CardBrake $cardBrake
      */
     public function __construct(
         private Config $config,
         private DeploymentConfig $deploymentConfig,
         private DirectoryList $directoryList,
-        private RuleFeed $ruleFeed
+        private RuleFeed $ruleFeed,
+        private CardBrake $cardBrake
     ) {
     }
 
@@ -105,6 +107,10 @@ class RequestInspector
             && ($rule = $this->ruleFeed->match($r, $path)) !== null
         ) {
             return ['type' => $rule === RuleFeed::TEST_RULE ? self::TYPE_POLICY : self::TYPE_ATTACK, 'rule' => $rule];
+        }
+        // Card testing: every single request looks like a customer paying, only the number tells
+        if (($rule = $this->cardBrake->check($r, $path)) !== null) {
+            return ['type' => self::TYPE_ATTACK, 'rule' => $rule];
         }
         if ($this->config->flag(Config::BLOCK_GRAPHQL) && preg_match('~(^|/)graphql/?$~', $path)) {
             return ['type' => self::TYPE_POLICY, 'rule' => 'graphql'];

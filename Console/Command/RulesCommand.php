@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Storetown\ShopGuard\Console\Command;
 
 use Storetown\ShopGuard\Model\RuleFeed;
+use Storetown\ShopGuard\Model\WarningCheck;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -20,9 +21,12 @@ class RulesCommand extends Command
 {
     /**
      * @param RuleFeed $ruleFeed
+     * @param WarningCheck $warningCheck
      */
-    public function __construct(private RuleFeed $ruleFeed)
-    {
+    public function __construct(
+        private RuleFeed $ruleFeed,
+        private WarningCheck $warningCheck
+    ) {
         parent::__construct();
     }
 
@@ -92,8 +96,14 @@ class RulesCommand extends Command
                 isset($hits[$rule['id']]) ? sprintf(' (%d hits in 30 days)', $hits[$rule['id']]) : ''
             ));
         }
-        foreach ($this->ruleFeed->warnings() as $warning) {
-            $output->writeln(sprintf('  warning %-8s %-22s %s', $warning['severity'], $warning['id'], $warning['title']['en']));
+        foreach ($this->warningCheck->all() as $warning) {
+            $output->writeln(sprintf(
+                '  warning %-8s %-22s %s – %s',
+                $warning['severity'],
+                $warning['id'],
+                $warning['title']['en'],
+                $warning['reasons'] === null ? 'does not affect this shop' : 'AFFECTS this shop: ' . implode(', ', $warning['reasons'])
+            ));
         }
         foreach ((array)($state['refused'] ?? []) as $id => $reason) {
             $output->writeln(sprintf('  <comment>refused %s: %s</comment>', $id, $reason));

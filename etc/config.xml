@@ -9,6 +9,10 @@
             <filter>
                 <attack_rules>1</attack_rules>
                 <feed_enabled>1</feed_enabled>
+                <login_guard>1</login_guard>
+                <login_attempts>10</login_attempts>
+                <card_mode>report</card_mode>
+                <card_limit>8</card_limit>
                 <block_file_options>0</block_file_options>
                 <block_address_upload>0</block_address_upload>
                 <block_graphql>0</block_graphql>

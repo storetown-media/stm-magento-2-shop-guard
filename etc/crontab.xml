@@ -10,5 +10,8 @@
         <job name="storetown_shop_guard_rules" instance="Storetown\ShopGuard\Cron\UpdateRules" method="execute">
             <schedule>37 * * * *</schedule>
         </job>
+        <job name="storetown_shop_guard_warnings" instance="Storetown\ShopGuard\Cron\AlertWarnings" method="execute">
+            <schedule>41 * * * *</schedule>
+        </job>
     </group>
 </config>

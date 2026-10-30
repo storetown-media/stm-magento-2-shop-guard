@@ -2,6 +2,15 @@
 
 All notable changes to STM Shop Security Guard are documented in this file.
 
+## [1.6.0] - 2026-10-30
+
+### Added
+
+- Password guessing on the admin login is blocked: from 10 failed logins of one address within 15 minutes (adjustable) the address is blocked until the end of the next day; addresses that logged in to the admin in the last 30 days, "Never block these IPs" and proxy addresses are never blocked
+- Files anyone can download are found once a day: app/etc/env.php, a git repository, database dumps and backups in the web root, phpinfo, Adminer or phpMyAdmin, Magento logs, a web root on the Magento main folder; the shop requests itself the way an attacker would, and a finding needs the content to prove it, so a "page not found" never alerts
+- Critical and high security warnings from Storetown Media are checked against the shop (Magento version, PHP version, packages, modules) and, when the shop is affected, sent once by mail and to the admin inbox; Shop Security Guard Pro alerts all levels itself, what it has sent is not sent twice; bin/magento shopguard:rules shows whether a warning affects the shop
+- Card test brake: payment attempts are counted per address and hour (REST payment-information, GraphQL placeOrder, checkouts with placeOrder in the address); above 8 (adjustable) the address is noted ("Watch only", the default) or further attempts are refused and the bot scan bans the address; bin/magento shopguard:cardtests lists who went over the limit
+
 ## [1.5.0] - 2026-10-29
 
 ### Added

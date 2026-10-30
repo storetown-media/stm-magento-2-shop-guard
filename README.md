@@ -37,6 +37,17 @@ hits, which `bin/magento shopguard:rules` shows, and block later. An older list 
 Only the file is fetched, nothing about the shop is sent; storetown-media.de sees the IP address of the server.
 Switch: *Load new attack patterns from Storetown Media*. Test: `https://your-shop/?shopguard-feed-test` answers 403.
 
+**Password guessing on the admin login** — Magento locks an account after a few failures, but the address keeps
+trying other accounts. From 10 failed admin logins within 15 minutes (adjustable) the address is blocked until the end
+of the next day. Addresses that logged in to the admin in the last 30 days, *Never block these IPs* and proxy
+addresses are never blocked. The block appears under *Automatically blocked IPs* and in `var/log/shop_guard.log`.
+
+**Files anyone can download (daily)** — the shop requests itself the way an attacker would: `app/etc/env.php`, `.git/`, database dumps and backups found in the shop root or `pub/`, phpinfo, Adminer, phpMyAdmin, `var/log/*.log` and `composer.json` (a web root on the Magento main folder instead of `pub/`). A finding needs the content to prove it, so a "page not found" with status 200 never alerts. If the shop cannot reach itself (firewall), the check stays silent.
+
+**Early warnings (critical and high)** — the signed feed can carry security warnings with the conditions under which a shop is affected (Magento version, PHP version of the web server, Composer packages, enabled modules). The shop checks them itself and sends critical and high warnings that apply once by mail and to the admin inbox (hourly at :41). `bin/magento shopguard:rules` shows every warning and whether it affects the shop. Shop Security Guard Pro alerts every level itself, with a task in the dashboard and the webhook; a warning Pro has sent is not sent twice.
+
+**Card test brake** — card testers run stolen card numbers through the checkout; every single request looks like a customer paying, only the number tells. Payment attempts are counted per address and hour (REST `payment-information`, GraphQL `placeOrder`, checkouts with `placeOrder` in the address). Above the limit (8) the address is only noted in the default mode *Watch only*; `bin/magento shopguard:cardtests` lists those addresses. In the mode *Refuse further payment attempts* they get 403 and the bot scan bans them. Admin addresses and proxies are never counted.
+
 **Upload block** — three plugins stop custom option file uploads before they reach the disk
 (frontend validator, inner validator and the REST processor that PolyShell uses).
 Switched on at install time only if the catalog has no options of type *File*.
@@ -134,6 +145,7 @@ bin/magento shopguard:scan [--full] [--notify]   # system check and backdoor sca
 bin/magento shopguard:bots [--dry-run]           # bot scan over the collected traffic
 bin/magento shopguard:integrity [--accept]       # compare code with the reference state, or take the current state
 bin/magento shopguard:rules [--update]           # attack patterns from Storetown Media: state, hits, fetch now
+bin/magento shopguard:cardtests                  # addresses over the payment attempt limit, last 7 days
 ```
 
 ## Files
@@ -146,6 +158,8 @@ bin/magento shopguard:rules [--update]           # attack patterns from Storetow
 | `var/shop_guard/integrity.json.gz` | reference state of the code files, checksum in the database |
 | `var/shop_guard/feed.json`, `feed-state.json` | verified attack patterns from Storetown Media and the state of the last fetch |
 | `var/shop_guard/feed-hits.log` | hits of patterns in the mode *log* |
+| `var/shop_guard/login-failures.json` | failed admin logins per address in the last 15 minutes |
+| `var/shop_guard/card-attempts.json`, `card-tests.log` | payment attempts per address in the last hour, addresses over the limit |
 
 ## Limits
 

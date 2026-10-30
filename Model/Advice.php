@@ -33,6 +33,7 @@ class Advice
         'crontab' => ['crontab'],
         'content' => ['content'],
         'admins' => ['admin-user', 'integration'],
+        'leaks' => ['leak-config', 'leak-git', 'leak-dump', 'leak-dump-local', 'leak-tool', 'leak-log', 'leak-docroot'],
     ];
 
     /**
@@ -51,6 +52,7 @@ class Advice
             'crontab' => __('Crontab'),
             'content' => __('CMS content and configuration'),
             'admins' => __('Admin users and integrations'),
+            'leaks' => __('Files anyone can download'),
         ];
         return $labels[$area] ?? __($area);
     }
@@ -93,6 +95,13 @@ class Advice
             'crontab' => __('Suspicious crontab entry'),
             'content' => __('Obfuscated script or template injection in stored content'),
             'admin-user' => __('New admin user, please confirm'),
+            'leak-config' => __('Configuration with the database password can be downloaded'),
+            'leak-git' => __('Git repository can be downloaded'),
+            'leak-dump' => __('Database dump or backup can be downloaded'),
+            'leak-dump-local' => __('Database dump or backup in the web root'),
+            'leak-tool' => __('phpinfo, Adminer or phpMyAdmin reachable from the web'),
+            'leak-log' => __('Magento log files can be downloaded'),
+            'leak-docroot' => __('Web root is the Magento main folder instead of pub/'),
         ];
         return $titles[$check] ?? __($check);
     }
@@ -223,6 +232,35 @@ class Advice
             'admin-user' => __(
                 'Confirm the user with your team. If nobody knows it, disable it, change all admin passwords '
                 . 'and check what it did (admin action log).'
+            ),
+            'leak-config' => __(
+                'Anyone can read the database password and the encryption key. Have the web server block app/ '
+                . 'and var/ (or set the web root to pub/) at once, then change the database password and the '
+                . 'encryption key and check the access log for downloads of app/etc/env.php.'
+            ),
+            'leak-git' => __(
+                'The source code and every secret ever committed can be downloaded. Have the web server block '
+                . '/.git or move the repository out of the web root, then change passwords found in the history.'
+            ),
+            'leak-dump' => __(
+                'Move the file out of the web root at once. Check the access log whether it was downloaded: with '
+                . 'customer data in it that is a data breach to report within 72 hours (GDPR Art. 33).'
+            ),
+            'leak-dump-local' => __(
+                'The web server does not hand it out right now, but one wrong rule is enough. Move it out of pub/ '
+                . 'and keep backups outside the shop folder.'
+            ),
+            'leak-tool' => __(
+                'It shows server details or gives direct access to the database. Delete it, or protect it with a '
+                . 'password and an IP restriction if your team needs it.'
+            ),
+            'leak-log' => __(
+                'The logs contain paths, e-mail addresses and error details. Have the web server block var/ '
+                . '(or set the web root to pub/).'
+            ),
+            'leak-docroot' => __(
+                'Magento expects the web root in pub/. Ask your hoster to change it; until then app/, var/ and '
+                . 'other folders can be reached from the web.'
             ),
         ];
         return $advice[$check] ?? __('Check the finding manually.');

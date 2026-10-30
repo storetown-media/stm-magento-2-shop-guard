@@ -140,6 +140,21 @@ class Notifier
     }
 
     /**
+     * A message of its own, outside the finding mail: mail to the alert recipients and the admin inbox
+     *
+     * @param string $subject
+     * @param string $body plain text
+     * @param bool $critical
+     * @return bool true when the mail went out
+     */
+    public function send(string $subject, string $body, bool $critical): bool
+    {
+        $sent = $this->mail($subject, $body);
+        $this->inbox($subject, $body, $critical);
+        return $sent;
+    }
+
+    /**
      * @param string $subject
      * @param string $body
      * @return bool

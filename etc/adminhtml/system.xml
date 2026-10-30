@@ -51,6 +51,29 @@
                         <field id="attack_rules">1</field>
                     </depends>
                 </field>
+                <field id="login_guard" translate="label comment" type="select" sortOrder="16" showInDefault="1">
+                    <label>Block password guessing on the admin login</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Magento locks an account after a few failed logins, but the address keeps trying other accounts. This blocks the address until the end of the next day. Addresses that logged in to the admin in the last 30 days, "Never block these IPs" and proxy addresses are never blocked.</comment>
+                </field>
+                <field id="card_mode" translate="label comment" type="select" sortOrder="18" showInDefault="1">
+                    <label>Card test brake</label>
+                    <source_model>Storetown\ShopGuard\Model\Config\Source\CardMode</source_model>
+                    <comment>Card testers run stolen card numbers through the checkout, one payment attempt after the other. Counted are payment attempts per address and hour (REST payment-information, GraphQL placeOrder, checkouts with placeOrder in the address). Start with "Watch only" and check bin/magento shopguard:cardtests after a week: if no real customer appears there, switch to refusing. Admin addresses and proxies are never counted.</comment>
+                </field>
+                <field id="card_limit" translate="label comment" type="text" sortOrder="19" showInDefault="1">
+                    <label>Payment attempts per address and hour</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <comment>Above this number the address is noted or refused.</comment>
+                </field>
+                <field id="login_attempts" translate="label comment" type="text" sortOrder="17" showInDefault="1">
+                    <label>Block after failed admin logins</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <comment>Failed logins from one address within 15 minutes.</comment>
+                    <depends>
+                        <field id="login_guard">1</field>
+                    </depends>
+                </field>
                 <field id="block_file_options" translate="label comment" type="select" sortOrder="20" showInDefault="1">
                     <label>Block file uploads in product options</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
