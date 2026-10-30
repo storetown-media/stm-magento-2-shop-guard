@@ -7,6 +7,12 @@ Free hardening module for Magento Open Source and Adobe Commerce 2.4.4 or later,
 It bundles what we run on our customers' shops after the 2026 attack waves
 (PolyShell, SessionReaper, StyleSmuggler, PHP2Shell) into one small module.
 
+## Video
+
+[![STM Shop Security Guard in under 3 minutes: every protection shown on the real Magento backend](docs/stm-shop-security-guard-video-en.jpg)](https://youtu.be/9FLJsoFPcgs)
+
+Every protection in 2:37 minutes, shown on the real Magento backend: [English on YouTube](https://youtu.be/9FLJsoFPcgs) · [Deutsch auf YouTube](https://youtu.be/c5z5a-eGVGE)
+
 ## What it does
 
 **Request filter** — runs before Magento routes a request, so blocked requests cost almost nothing.
