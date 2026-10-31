@@ -162,7 +162,10 @@ class SystemCheck
             return null;
         }
         if (!empty($cached['error'])) {
-            return $this->row(self::WARNING, __('Magento patches'), __('not checked')->render(), (string)$cached['error']);
+            $hint = $cached['error'] === 'no-composer'
+                ? __('The tool patch-status of Adobe only reads Magento installed with Composer; this shop was installed from source. Have your developer check the monthly security patches.')
+                : (string)$cached['error'];
+            return $this->row(self::WARNING, __('Magento patches'), __('not checked')->render(), $hint);
         }
         $open = array_merge((array)($cached['vulnerable'] ?? []), (array)($cached['missing'] ?? []));
         return $open
@@ -218,6 +221,10 @@ class SystemCheck
         fclose($pipes[2]);
         $code = proc_close($proc);
         $json = json_decode($out, true);
+        // a Magento installed from source: the tool answers in JSON, but finds no package to compare with
+        if (is_array($json) && ($json['base_version'] ?? '') === 'unknown') {
+            return ['error' => 'no-composer'];
+        }
         if ($code !== 0 || !is_array($json) || !isset($json['vulnerability_status'])) {
             return ['error' => trim(substr($err . ' ' . $out, 0, 200)) ?: 'exit ' . $code];
         }

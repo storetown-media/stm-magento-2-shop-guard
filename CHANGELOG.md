@@ -2,6 +2,12 @@
 
 All notable changes to STM Shop Security Guard are documented in this file.
 
+## [1.7.1] - 2026-10-31
+
+### Fixed
+
+- On a Magento installed from source, the check "Magento patches" showed the raw answer of Adobe's tool patch-status; it now says in one sentence that the tool only reads Composer installations
+
 ## [1.7.0] - 2026-10-30
 
 ### Added

@@ -218,3 +218,4 @@
 "Request filter off","Anfragefilter aus"
 "To the overview","Zum Überblick"
 "Backdoor scan and system values","Backdoor-Scan und Systemwerte"
+"The tool patch-status of Adobe only reads Magento installed with Composer; this shop was installed from source. Have your developer check the monthly security patches.","Adobes Werkzeug patch-status liest nur Magento-Installationen per Composer; dieser Shop wurde aus dem Quellcode installiert. Lassen Sie die monatlichen Sicherheitspatches von Ihrer Agentur prüfen."
